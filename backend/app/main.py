@@ -1,6 +1,9 @@
-from fastapi import FastAPI
-from starlette.middleware.cors import CORSMiddleware
+"""
+Main appplication file
+"""
 import logging
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Personal Finance Tracker",
@@ -21,8 +24,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/", tags=["Home"])
 async def read_root():
+    """
+    Root endpoint
+    """
     logger.info("Root endpoint accessed")
     return {"message": "Welcome to the Personal Finance Tracker API"}
 

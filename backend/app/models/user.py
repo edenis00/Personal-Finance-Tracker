@@ -1,0 +1,33 @@
+"""
+User model
+"""
+from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP
+from sqlalchemy.sql import func
+from backend.app.db.database import Base
+
+
+class User(Base):
+    """
+    users table
+    """
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    password = Column(String(255), nullable=False)
+    first_name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
+    phone_number = Column(String(20), unique=True, index=True, nullable=True)
+    role = Column(String(20), default="user", nullable=False)
+    is_active = Column(Boolean, default=True)
+    is_verified = Column(Boolean, default=False)
+    profile_img_url = Column(String(500), nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+
+    def __repr__(self):
+        """
+        String representation of the User model
+        """
+        return f"<User id={self.id} email={self.email} role={self.role}>"
