@@ -27,6 +27,19 @@ class UserCreate(BaseModel):
     profile_img_url: Optional[str] = None
 
 
+class UserUpdate(BaseModel):
+    """
+    Schema for updating a user
+    """
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    role: Optional[UserRole] = None
+    is_active: Optional[bool] = None
+    is_verified: Optional[bool] = None
+    profile_img_url: Optional[str] = None
+
+
 class UserResponse(BaseModel):
     """
     Schema for user response

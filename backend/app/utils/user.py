@@ -3,7 +3,8 @@ User utils
 """
 from sqlalchemy.orm import Session
 from backend.app.models.user import User
-from backend.app.schema.user import UserCreate
+from backend.app.schema.user import UserCreate, UserUpdate
+from backend.app.utils.auth import hash_password
 
 
 def fetch(db: Session, user_id: int):
@@ -26,9 +27,15 @@ def fetch_by_email(db: Session, email: str):
 
 def create(db: Session, user: UserCreate):
     """Create a new user"""
+
+    if fetch_by_email(db, user.email):
+        return ValueError("Email already registered")
+
+    hashed_password = hash_password(user.hashed_password) if user.password else None
+
     new_user = User(
         email=user.email,
-        password=user.password,
+        password=hashed_password,
         first_name=user.first_name,
         last_name=user.last_name,
         phone_number=user.phone_number,
@@ -37,30 +44,39 @@ def create(db: Session, user: UserCreate):
         is_verified=user.is_verified,
         profile_img_url=user.profile_img_url
     )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+
+    try:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+    except Exception as e:
+        db.rollback()
+        raise e
 
     return new_user
 
 
-def update(db: Session, user: UserCreate, user_id: int):
+def update(db: Session, user: UserUpdate, user_id: int):
     """Update user"""
     update_user  = db.query(User).filter(User.id == user_id).first()
+
     if not update_user:
         return None
 
-    update_user.email = user.email
-    update_user.first_name = user.first_name
-    update_user.last_name = user.last_name
-    update_user.phone_number = user.phone_number
-    update_user.role = user.role
-    update_user.is_active = user.is_active
-    update_user.is_verified = user.is_verified
-    update_user.profile_img_url = user.profile_img_url
+    update_data = user.dict(exclude_unset=True)
 
-    db.commit()
-    db.refresh(update_user)
+    if "password" in update_data and update_data["password"]:
+        update_data["password"] = hash_password(update_data["password"])
+
+    for key, value in update_data.items():
+        setattr(update_user, key, value)
+
+    try:
+        db.commit()
+        db.refresh(update_user)
+    except Exception:
+        db.rollback()
+        raise
 
     return update_user
 

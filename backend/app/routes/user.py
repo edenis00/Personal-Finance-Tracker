@@ -4,7 +4,7 @@ User routes
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.app.db.database import get_db
-from backend.app.schema.user import UserResponse, UserCreate
+from backend.app.schema.user import UserResponse, UserCreate, UserUpdate
 from backend.app.utils.user import fetch, fetch_all, fetch_by_email, create, update, delete
 
 router = APIRouter(
@@ -14,7 +14,7 @@ router = APIRouter(
 
 
 @router.get("/{user_id}", response_model=UserResponse)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def fetch_user(user_id: int, db: Session = Depends(get_db)):
     """Get a user by ID"""
     user = fetch(db, user_id)
     if not user:
@@ -24,7 +24,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=list[UserResponse])
-def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def fetch_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all users with pagination"""
     users = fetch_all(db, skip=skip, limit=limit)
 
@@ -43,7 +43,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{user_id}", response_model=UserResponse)
-def update_user(user_id: int, user: UserCreate, db: Session = Depends(get_db)):
+def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
     """Update a user"""
     updated_user = update(db, user, user_id)
     if not updated_user:
