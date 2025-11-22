@@ -34,6 +34,9 @@ class Settings(BaseSettings):
         if self.database_url:
             return self.database_url
 
+        if not all([self.db_user, self.db_password, self.db_host, self.db_port, self.db_name]):
+            raise ValueError("Incomplete database configuration")
+
         return (
             f"postgresql+asyncpg://{self.db_user}:{self.db_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"

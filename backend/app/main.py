@@ -4,7 +4,8 @@ Main appplication file
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app import routes
+from app.routes import auth_router, user_router
+
 
 app = FastAPI(
     title="Personal Finance Tracker",
@@ -14,7 +15,8 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-app.include_router(auth_router)
+app.include_router(router=auth_router)
+app.include_router(router=user_router)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

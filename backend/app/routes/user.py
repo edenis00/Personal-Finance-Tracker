@@ -3,9 +3,9 @@ User routes
 """
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from backend.app.db.database import get_db
-from backend.app.schema.user import UserResponse, UserCreate, UserUpdate
-from backend.app.utils.user import fetch, fetch_all, fetch_by_email, create, update, delete
+from app.db.database import get_db
+from app.schema.user import UserResponse, UserCreate, UserUpdate
+from app.utils.user import fetch, fetch_all, fetch_by_email, create, update, delete
 
 router = APIRouter(
     prefix="/users",

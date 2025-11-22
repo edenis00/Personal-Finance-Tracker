@@ -2,9 +2,9 @@
 User utils
 """
 from sqlalchemy.orm import Session
-from backend.app.models.user import User
-from backend.app.schema.user import UserCreate, UserUpdate
-from backend.app.utils.auth import hash_password
+from app.models.user import User
+from app.schema.user import UserCreate, UserUpdate
+from app.utils.auth import hash_password
 
 
 def fetch(db: Session, user_id: int):
@@ -31,7 +31,7 @@ def create(db: Session, user: UserCreate):
     if fetch_by_email(db, user.email):
         return ValueError("Email already registered")
 
-    hashed_password = hash_password(user.hashed_password) if user.password else None
+    hashed_password = hash_password(user.password) if user.password else None
 
     new_user = User(
         email=user.email,

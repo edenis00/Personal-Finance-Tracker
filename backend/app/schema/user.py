@@ -3,7 +3,7 @@ User Schemas
 """
 from typing import Optional
 from enum import Enum
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 
 class UserRole(str, Enum):
@@ -18,7 +18,7 @@ class UserCreate(BaseModel):
     """
     Schema for creating a new user
     """
-    email: EmailStr
+    email: str
     password: str
     first_name: str
     last_name: str
@@ -45,7 +45,7 @@ class UserResponse(BaseModel):
     Schema for user response
     """
     id: int
-    email: EmailStr
+    email: str
     first_name: str
     last_name: str
     phone_number: Optional[str] = None
@@ -64,5 +64,5 @@ class UserLogin(BaseModel):
     """
     Schema for user login
     """
-    email: EmailStr
+    email: str
     password: str

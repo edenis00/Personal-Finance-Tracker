@@ -2,7 +2,7 @@
 Authentication utilities
 """
 from datetime import datetime, timedelta
-from jose import jwt
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from app.core.config import settings
 
@@ -44,7 +44,6 @@ def validate_password(password: str) -> None:
             "contain uppercase and lowercase letters, "
             "digits, and special characters."
         )
-    return None
 
 
 def create_access_token(data: dict, expires_delta: int=30):
@@ -55,3 +54,13 @@ def create_access_token(data: dict, expires_delta: int=30):
     to_encode.update({"exp": expire})
 
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_access_token(token: str):
+    """Decode a JWT access token"""
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError as e:
+        raise ValueError("Invalid token error: " + str(e))
