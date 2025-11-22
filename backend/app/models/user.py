@@ -2,6 +2,7 @@
 User model
 """
 from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP
+from sqlalchemy.orm import relationship 
 from sqlalchemy.sql import func
 from app.db.database import Base
 
@@ -24,6 +25,9 @@ class User(Base):
     profile_img_url = Column(String(500), nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    incomes = relationship("Income", back_populates="user")
 
 
     def __repr__(self):
