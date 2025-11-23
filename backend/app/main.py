@@ -4,7 +4,7 @@ Main appplication file
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import auth_router, user_router
+from app.routes import auth_router, user_router, income_router, expense_router
 
 
 app = FastAPI(
@@ -17,6 +17,8 @@ app = FastAPI(
 
 app.include_router(router=auth_router)
 app.include_router(router=user_router)
+app.include_router(router=income_router)
+app.include_router(router=expense_router)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
