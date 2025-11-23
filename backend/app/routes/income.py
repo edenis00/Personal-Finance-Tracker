@@ -47,7 +47,7 @@ def read_income(income_id: int, db: Session = Depends(get_db)):
     """
     db_income = check_income_exists(income_id, Income, db)
 
-    if db_income is None:
+    if not db_income:
         raise HTTPException(status_code=404, detail="Income not found")
 
     return db_income

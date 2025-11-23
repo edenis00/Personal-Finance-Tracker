@@ -28,6 +28,7 @@ class User(Base):
 
     # Relationships
     incomes = relationship("Income", back_populates="user")
+    expenses = relationship("Expense", back_populates="user")
 
 
     def __repr__(self):

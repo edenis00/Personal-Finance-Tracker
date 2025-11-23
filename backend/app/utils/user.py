@@ -29,7 +29,7 @@ def create(db: Session, user: UserCreate):
     """Create a new user"""
 
     if fetch_by_email(db, user.email):
-        return ValueError("Email already registered")
+        raise ValueError("Email already registered")
 
     hashed_password = hash_password(user.password) if user.password else None
 

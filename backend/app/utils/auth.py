@@ -24,15 +24,15 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def is_password_strong(password: str) -> bool:
     """Check if the password meets strength requirements."""
     if len(password) < 8:
-        return False
+        raise ValueError("Password must be at least 8 characters long")
     if not any(char.isupper() for char in password):
-        return False
+        raise ValueError("Password must contain at least one uppercase letter")
     if not any(char.islower() for char in password):
-        return False
+        raise ValueError("Password must contain at least one lowercase letter")
     if not any(char.isdigit() for char in password):
-        return False
+        raise ValueError("Password must contain at least one digit")
     if not any(char in "!@#$%^&*()-_=+[]{}|;:'\",.<>?/`~" for char in password):
-        return False
+        raise ValueError("Password must contain at least one special character")
     return True
 
 
@@ -63,4 +63,4 @@ def decode_access_token(token: str):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
     except JWTError as e:
-        raise ValueError("Invalid token error: " + str(e))
+        raise ValueError(f"Invalid token: {str(e)}")
