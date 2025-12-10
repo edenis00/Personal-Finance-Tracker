@@ -1,7 +1,7 @@
 """
 Expense schema
 """
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ExpenseCreate(BaseModel):
@@ -35,5 +35,4 @@ class ExpenseResponse(BaseModel):
     created_at: str
     updated_at: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

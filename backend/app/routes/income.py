@@ -25,19 +25,19 @@ def create_income(income: IncomeCreate, db: Session = Depends(get_db)):
     """
     Create a new income entry
     """
-    db_income = Income(**income.dict())
+    new_income = Income(**income.dict())
 
     try:
-        if not check_income_validity(db_income):
+        if not check_income_validity(new_income):
             raise HTTPException(status_code=400, detail="Invalid income data")
-        db.add(db_income)
+        db.add(new_income)
         db.commit()
-        db.refresh(db_income)
+        db.refresh(new_income)
     except Exception as e:
         db.rollback()
         raise e
 
-    return db_income
+    return new_income
 
 
 @router.get("/{income_id}", response_model=IncomeResponse)

@@ -33,17 +33,10 @@ def create(db: Session, user: UserCreate):
 
     hashed_password = hash_password(user.password) if user.password else None
 
-    new_user = User(
-        email=user.email,
-        password=hashed_password,
-        first_name=user.first_name,
-        last_name=user.last_name,
-        phone_number=user.phone_number,
-        role=user.role,
-        is_active=user.is_active,
-        is_verified=user.is_verified,
-        profile_img_url=user.profile_img_url
-    )
+    user_data = user.model_dump(exclude={"password"})
+    user_data["password"] = hashed_password
+
+    new_user = User(**user_data)
 
     try:
         db.add(new_user)
@@ -58,6 +51,7 @@ def create(db: Session, user: UserCreate):
 
 def update(db: Session, user: UserUpdate, user_id: int):
     """Update user"""
+
     update_user  = db.query(User).filter(User.id == user_id).first()
 
     if not update_user:

@@ -2,7 +2,7 @@
 User model
 """
 from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP
-from sqlalchemy.orm import relationship 
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.database import Base
 
@@ -29,7 +29,7 @@ class User(Base):
     # Relationships
     incomes = relationship("Income", back_populates="user")
     expenses = relationship("Expense", back_populates="user")
-
+    savings = relationship("Savings", back_populates="user")
 
     def __repr__(self):
         """

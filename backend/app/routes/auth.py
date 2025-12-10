@@ -1,6 +1,7 @@
 """
 Authentication routes
 """
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.utils.auth import verify_password, create_access_token
@@ -12,47 +13,37 @@ from app.schema.user import UserCreate, UserResponse, UserLogin
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/login")
-def login(user: UserLogin, db: Session = Depends(get_db)):
+@router.post("/login", status_code=status.HTTP_200_OK)
+def login(payload: UserLogin, db: Session = Depends(get_db)):
     """User Login route"""
 
-    db_user = fetch_by_email(db, user.email)
+    user = fetch_by_email(db, payload.email)
 
-    if not db_user:
+    if not user or not verify_password(payload.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email not found"
+            detail="Incorrect of email or password"
         )
 
-    if not verify_password(user.password, db_user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect password"
-        )
+    token, expire = create_access_token(data={"user_id": str(user.id)})
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "expires_in": int((expire - datetime.now(timezone.utc)).total_seconds()),
+        "expires_at": expire.isoformat(),
+        "user": UserResponse.from_orm(user)
+    }
 
-    token = create_access_token(data={"user_id": db_user.id})
-    return {"access_token": token, "token_type": "bearer"}
 
-
-@router.post("/register", response_model=UserResponse)
+@router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     """Create a new user"""
 
     db_user = fetch_by_email(db, user.email)
 
     if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=409, detail="Email already registered")
 
     new_user = create(db, user)
 
-    return UserResponse(
-        id=new_user.id,
-        email=new_user.email,
-        first_name=new_user.first_name,
-        last_name=new_user.last_name,
-        phone_number=new_user.phone_number,
-        role=new_user.role,
-        is_active=new_user.is_active,
-        is_verified=new_user.is_verified,
-        profile_img_url=new_user.profile_img_url,
-    )
+    return new_user

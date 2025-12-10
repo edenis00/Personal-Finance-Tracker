@@ -3,7 +3,7 @@ Income schema
 """
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class IncomeCreate(BaseModel):
@@ -37,5 +37,4 @@ class IncomeResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

@@ -1,15 +1,18 @@
 """
 Authentication utilities
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from fastapi import HTTPException, status
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from app.core.config import settings
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["argon2", "bcrypt"], deprecated="auto")
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440
+
 
 def hash_password(password: str) -> str:
     """Function to hash a password"""
@@ -46,14 +49,21 @@ def validate_password(password: str) -> None:
         )
 
 
-def create_access_token(data: dict, expires_delta: int=30):
+def create_access_token(data: dict):
     """create a JWT access token"""
 
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=expires_delta)
-    to_encode.update({"exp": expire})
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update(
+        {
+            "exp": expire,
+            "iat": datetime.now(timezone.utc),
+            "sub": str(data.get("user_id"))
+        }
+        )
 
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt, expire
 
 
 def decode_access_token(token: str):
@@ -61,6 +71,15 @@ def decode_access_token(token: str):
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Inavlid token: Could not validate credentials"
+            )
         return payload
     except JWTError as e:
-        raise ValueError(f"Invalid token: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Inavlid token: Could not validate credentials"
+        ) from e

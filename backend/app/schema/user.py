@@ -3,7 +3,8 @@ User Schemas
 """
 from typing import Optional
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from datetime import datetime
 
 
 class UserRole(str, Enum):
@@ -53,11 +54,10 @@ class UserResponse(BaseModel):
     is_active: bool
     is_verified: bool
     profile_img_url: Optional[str] = None
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserLogin(BaseModel):
