@@ -1,18 +1,16 @@
 """
 Income routes
 """
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.models.income import Income
+from app.models import Income, User
 from app.schema.income import IncomeCreate, IncomeResponse, IncomeUpdate
+from app.dependencies.auth import get_current_user
 from app.utils.income import (
-    calculate_total_income,
-    get_recent_incomes,
-    check_income_exists,
     check_income_validity
 )
+
 
 router = APIRouter(
     prefix="/incomes",
@@ -20,115 +18,90 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=IncomeResponse)
-def create_income(income: IncomeCreate, db: Session = Depends(get_db)):
+@router.post("/", response_model=IncomeResponse, status_code=status.HTTP_201_CREATED)
+def create_income(
+    income: IncomeCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
     Create a new income entry
     """
+    check_income_exists = db.query(Income).filter(Income.user_id == current_user.id).first()
+
+    if check_income_exists:
+        raise HTTPException(status_code=409, detail="Income with this ID already exists")
+
     new_income = Income(**income.dict())
 
-    try:
-        if not check_income_validity(new_income):
-            raise HTTPException(status_code=400, detail="Invalid income data")
-        db.add(new_income)
-        db.commit()
-        db.refresh(new_income)
-    except Exception as e:
-        db.rollback()
-        raise e
+    if not check_income_validity(new_income):
+        raise HTTPException(status_code=400, detail="Invalid income data")
+
+    db.add(new_income)
+    db.commit()
+    db.refresh(new_income)
 
     return new_income
 
 
-@router.get("/{income_id}", response_model=IncomeResponse)
-def read_income(income_id: int, db: Session = Depends(get_db)):
+@router.get("/", response_model=IncomeResponse)
+def fetch_income(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
     Retrieve an income entry by ID
     """
-    db_income = check_income_exists(income_id, Income, db)
+    check_income_exists = db.query(Income).filter(Income.user_id == current_user.id).first()
 
-    if not db_income:
+    if not check_income_exists:
         raise HTTPException(status_code=404, detail="Income not found")
 
-    return db_income
+    return check_income_exists
 
 
-@router.put("/{income_id}", response_model=IncomeResponse)
-def update_income(income_id: int, income: IncomeUpdate, db: Session = Depends(get_db)):
+@router.put("/}", response_model=IncomeResponse)
+def update_income(
+    income: IncomeUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
     Update an existing income entry
     """
-    db_income = check_income_exists(income_id, Income, db)
+    check_income_exists = db.query(Income).filter(Income.user_id == current_user.id).first()
 
-    if db_income is None:
+    if check_income_exists is None:
         raise HTTPException(status_code=404, detail="Income not found")
 
-    for key, value in income.dict().items():
-        setattr(db_income, key, value)
+    if not check_income_validity(check_income_exists):
+        raise HTTPException(status_code=400, detail="Invalid income data")
 
-    try:
-        if not check_income_validity(db_income):
-            raise HTTPException(status_code=400, detail="Invalid income data")
-        db.commit()
-        db.refresh(db_income)
-    except Exception as e:
-        db.rollback()
-        raise e
+    income_data = income.model_dump(exclude_unset=True)
+    for key, value in income_data.items():
+        setattr(check_income_exists, key, value)
 
-    return db_income
+    db.commit()
+    db.refresh(check_income_exists)
+
+    return check_income_exists
 
 
-@router.delete("/{income_id}")
-def delete_income(income_id: int, db: Session = Depends(get_db)):
+@router.delete("/",  status_code=status.HTTP_204_NO_CONTENT)
+def delete_income(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
     Delete an income entry
     """
 
-    db_income = check_income_exists(income_id, Income, db)
+    check_income_exists = db.query(Income).filter(Income.user_id == current_user.id).first()
 
-    if db_income is None:
+    if check_income_exists is None:
         raise HTTPException(status_code=404, detail="Income not found")
 
-    try:
-        db.delete(db_income)
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise e
+    db.delete(check_income_exists)
+    db.commit()
 
-    return {"detail": "Income deleted successfully"}
-
-
-@router.get("/", response_model=List[IncomeResponse])
-def read_incomes(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    """
-    Retrieve income entries
-    """
-
-    incomes = db.query(Income).offset(skip).limit(limit).all()
-
-    return incomes
-
-
-@router.get("/total/", response_model=float)
-def get_total_income(db: Session = Depends(get_db)):
-    """
-    Get the total income from all entries
-    """
-
-    incomes = db.query(Income).all()
-    total = calculate_total_income(incomes)
-
-    return total
-
-
-@router.get("/recent/", response_model=List[IncomeResponse])
-def get_recent_income_entries(n: int = 5, db: Session = Depends(get_db)):
-    """
-    Get the most recent n income entries
-    """
-
-    incomes = db.query(Income).all()
-    recent_incomes = get_recent_incomes(incomes, n)
-
-    return recent_incomes
+    return None

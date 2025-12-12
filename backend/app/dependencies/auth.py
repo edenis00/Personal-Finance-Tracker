@@ -1,0 +1,60 @@
+"""Authentication dependencies"""
+from fastapi import HTTPException, Depends, status, Header
+from sqlalchemy.orm import Session
+from app.utils.auth import decode_access_token
+from app.db.database import get_db
+from app.models import User
+
+
+def get_current_user(authorization: str | None = Header(None), db: Session = Depends(get_db)):
+    """
+    get_current_user
+    """
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing authorization header",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    print("Authorization header received:", authorization)
+
+    token = authorization.split(" ")[1]
+
+    print("Token received in header:", token)
+
+    try:
+        payload = decode_access_token(token)
+        user_id: str = payload.get("sub")
+
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+    except HTTPException:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token; Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return user

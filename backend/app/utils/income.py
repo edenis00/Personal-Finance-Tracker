@@ -4,14 +4,6 @@ Income utilities
 from collections import defaultdict
 
 
-def check_income_exists(income_id, incomes, db):
-    """
-    Check if an income entry exists by ID
-    """
-    income = db.query(incomes).filter(incomes.id == income_id).first()
-    return income is not None
-
-
 def check_income_validity(income):
     """
     Check if the income entry is valid

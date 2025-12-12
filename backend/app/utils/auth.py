@@ -75,11 +75,13 @@ def decode_access_token(token: str):
         if user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Inavlid token: Could not validate credentials"
+                detail="Inavlid token: Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"}
             )
         return payload
     except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Inavlid token: Could not validate credentials"
+            detail="Inavlid token: Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"}
         ) from e

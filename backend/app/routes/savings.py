@@ -3,20 +3,24 @@ Docstring for backend.app.routes.savings
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.models import Savings
+from app.models import Savings, User
 from app.db.database import get_db
+from app.dependencies.auth import get_current_user
 from app.schema.savings import SavingsCreate, SavingsResponse, SavingsUpdate
 
 
 router = APIRouter(prefix="/savings", tags=["Savings"])
 
 
-@router.get("/{user_id}", response_model=SavingsResponse, status_code=status.HTTP_200_OK)
-def fetch_savings(user_id: int, db: Session = Depends(get_db)):
+@router.get("/", response_model=SavingsResponse)
+def fetch_savings(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
     Retrieving savings for a user
     """
-    savings = db.get(Savings, user_id)
+    savings = db.query(Savings).filter(Savings.user_id == current_user.id).first()
     if not savings:
         raise HTTPException(status_code=404, detail="Savings not found")
 
@@ -24,11 +28,16 @@ def fetch_savings(user_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=SavingsResponse, status_code=status.HTTP_201_CREATED)
-def create(saving: SavingsCreate, db: Session = Depends(get_db)):
+def create(
+    saving: SavingsCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
     Creating new savings for a user
     """
-    if db.get(Savings, saving.user_id):
+    savings = db.query(Savings).filter(Savings.user_id == current_user.id).first()
+    if savings:
         raise HTTPException(status_code=409, detail="Savings already exists for this user")
 
     new_savings = Savings(**saving.dict)
@@ -40,12 +49,16 @@ def create(saving: SavingsCreate, db: Session = Depends(get_db)):
     return new_savings
 
 
-@router.put("/{user_id}", response_model=SavingsResponse, status_code=status.HTTP_200_OK)
-def update(user_id: int, savings: SavingsUpdate, db: Session = Depends(get_db)):
+@router.put("/", response_model=SavingsResponse, status_code=status.HTTP_200_OK)
+def update(
+    savings: SavingsUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
     Updating savings for a user
     """
-    existing_savings = db.get(Savings, user_id)
+    existing_savings = db.query(Savings).filter(Savings.user_id == current_user.id).first()
 
     if not existing_savings:
         raise HTTPException(status_code=404, detail="Savings not found")
@@ -60,12 +73,15 @@ def update(user_id: int, savings: SavingsUpdate, db: Session = Depends(get_db)):
     return existing_savings
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete(user_id: int, db: Session = Depends(get_db)):
+@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+def delete(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
     Deleting savings of a user
     """
-    existing_savings = db.get(Savings, user_id)
+    existing_savings = db.query(Savings).filter(Savings.user_id == current_user.id).first()
 
     if not existing_savings:
         raise HTTPException(status_code=404, detail="Savings not found")
