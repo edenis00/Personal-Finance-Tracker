@@ -30,7 +30,6 @@ class ExpenseResponse(BaseModel):
     id: int
     amount: float
     category: str
-    description: str
     user_id: int
     created_at: str
     updated_at: str

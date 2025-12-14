@@ -40,7 +40,7 @@ def create(
     if savings:
         raise HTTPException(status_code=409, detail="Savings already exists for this user")
 
-    new_savings = Savings(**saving.dict)
+    new_savings = Savings(**saving.model_dump())
 
     db.add(new_savings)
     db.commit()

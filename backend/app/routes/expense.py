@@ -19,16 +19,10 @@ router = APIRouter(
 @router.post("/", response_model=ExpenseResponse, status_code=status.HTTP_201_CREATED)
 def create_expense(
     expense: ExpenseCreate,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)):
     """
     Create a new expense entry
     """
-
-    expense_exists = db.query(Expense).filter(Expense.user_id == current_user.id).first()
-
-    if expense_exists:
-        raise HTTPException(status_code=409, detail="Expense with this ID already exists")
 
     db_expense = Expense(**expense.model_dump())
     db.add(db_expense)
@@ -38,8 +32,9 @@ def create_expense(
     return db_expense
 
 
-@router.get("/", response_model=ExpenseResponse)
+@router.get("/{expense_id}", response_model=ExpenseResponse)
 def read_expense(
+    expense_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -47,7 +42,10 @@ def read_expense(
     Retrieve an expense entry by ID
     """
 
-    expense_exists = db.query(Expense).filter(Expense.user_id == current_user.id).first()
+    expense_exists = db.query(Expense).filter(
+        Expense.id == expense_id,
+        Expense.user_id == current_user.id
+    ).first()
 
     if not expense_exists:
         raise HTTPException(status_code=404, detail="Expense not found")
@@ -65,7 +63,7 @@ def update_expense(
     Update an existing expense entry
     """
 
-    expense_exists = db.query(Expense).filter(Expense.id == current_user.id).first()
+    expense_exists = db.query(Expense).filter(Expense.user_id == current_user.id).first()
 
     if expense_exists is None:
         raise HTTPException(status_code=404, detail="Expense not found")
@@ -73,7 +71,7 @@ def update_expense(
     db_expense = expense.model_dump(exclude_unset=True)
 
     for key, value in db_expense.items():
-        setattr(db_expense, key, value)
+        setattr(expense_exists, key, value)
 
     db.commit()
     db.refresh(db_expense)
@@ -90,7 +88,7 @@ def delete_expense(
     Delete an expense entry
     """
 
-    db_expense = db.query(Expense).filter(Expense.id == current_user.id).first()
+    db_expense = db.query(Expense).filter(Expense.user_id == current_user.id).first()
 
     if db_expense is None:
         raise HTTPException(status_code=404, detail="Expense not found")
@@ -114,7 +112,7 @@ def get_total_expenses(
 
     if not expenses:
         return {"user_id": current_user.id, "total_expenses": 0.0}
-    
+
     total = calculate_total_expenses(expenses)
 
     return {"user_id": current_user.id, "total_expenses": total}

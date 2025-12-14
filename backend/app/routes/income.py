@@ -27,12 +27,7 @@ def create_income(
     """
     Create a new income entry
     """
-    check_income_exists = db.query(Income).filter(Income.user_id == current_user.id).first()
-
-    if check_income_exists:
-        raise HTTPException(status_code=409, detail="Income with this ID already exists")
-
-    new_income = Income(**income.dict())
+    new_income = Income(**income.model_dump())
 
     if not check_income_validity(new_income):
         raise HTTPException(status_code=400, detail="Invalid income data")
@@ -60,7 +55,7 @@ def fetch_income(
     return check_income_exists
 
 
-@router.put("/}", response_model=IncomeResponse)
+@router.put("/", response_model=IncomeResponse)
 def update_income(
     income: IncomeUpdate,
     current_user: User = Depends(get_current_user),
