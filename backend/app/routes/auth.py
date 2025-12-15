@@ -4,6 +4,8 @@ Authentication routes
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from app.utils.auth import verify_password, create_access_token
 from app.utils.user import fetch_by_email, create
 from app.db.database import get_db
@@ -14,6 +16,9 @@ from app.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+limiter = Limiter(key_func=get_remote_address)
+
+
 
 @router.get("/me", response_model=UserResponse)
 def me(current_user: User = Depends(get_current_user)):
@@ -22,6 +27,7 @@ def me(current_user: User = Depends(get_current_user)):
 
 
 @router.post("/login", status_code=status.HTTP_200_OK)
+@limiter.limit("5/minute") # Rate limiting: 5 requests per minute
 def login(payload: UserLogin, db: Session = Depends(get_db)):
     """User Login route"""
 
