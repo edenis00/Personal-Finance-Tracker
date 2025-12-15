@@ -19,7 +19,6 @@ class Settings(BaseSettings):
     secret_key: str
     algorithm: str
 
-
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
@@ -38,7 +37,7 @@ class Settings(BaseSettings):
             raise ValueError("Incomplete database configuration")
 
         return (
-            f"postgresql+asyncpg://{self.db_user}:{self.db_password}"
+            f"postgresql+psycopg2://{self.db_user}:{self.db_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
