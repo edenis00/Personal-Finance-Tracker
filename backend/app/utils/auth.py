@@ -11,7 +11,7 @@ from app.core.config import settings
 pwd_context = CryptContext(schemes=["argon2", "bcrypt"], deprecated="auto")
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
-ACCESS_TOKEN_EXPIRE_MINUTES = 1440
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 def hash_password(password: str) -> str:
