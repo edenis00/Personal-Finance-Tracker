@@ -3,8 +3,8 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
 
-from app.models.user import Base
-from app import models
+from app.db.database import Base
+from app.models import User, Expense, Income, Savings
 from app.core.config import settings
 
 
