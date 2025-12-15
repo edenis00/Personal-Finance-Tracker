@@ -53,8 +53,9 @@ def read_expense(
     return expense_exists
 
 
-@router.put("/", response_model=ExpenseResponse)
+@router.put("/{expense_id}", response_model=ExpenseResponse)
 def update_expense(
+    expense_id: int,
     expense: ExpenseUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -63,7 +64,10 @@ def update_expense(
     Update an existing expense entry
     """
 
-    expense_exists = db.query(Expense).filter(Expense.user_id == current_user.id).first()
+    expense_exists = db.query(Expense).filter(
+        Expense.id == expense_id,
+        Expense.user_id == current_user.id
+    ).first()
 
     if expense_exists is None:
         raise HTTPException(status_code=404, detail="Expense not found")
@@ -79,8 +83,9 @@ def update_expense(
     return db_expense
 
 
-@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_expense(
+    expense_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -88,7 +93,10 @@ def delete_expense(
     Delete an expense entry
     """
 
-    db_expense = db.query(Expense).filter(Expense.user_id == current_user.id).first()
+    db_expense = db.query(Expense).filter(
+        Expense.id == expense_id,
+        Expense.user_id == current_user.id
+    ).first()
 
     if db_expense is None:
         raise HTTPException(status_code=404, detail="Expense not found")

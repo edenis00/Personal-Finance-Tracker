@@ -12,15 +12,21 @@ from app.schema.savings import SavingsCreate, SavingsResponse, SavingsUpdate
 router = APIRouter(prefix="/savings", tags=["Savings"])
 
 
-@router.get("/", response_model=SavingsResponse)
+@router.get("/{savings_id}", response_model=SavingsResponse)
 def fetch_savings(
+    savings_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Retrieving savings for a user
     """
-    savings = db.query(Savings).filter(Savings.user_id == current_user.id).first()
+
+    savings = db.query(Savings).filter(
+        Savings.id == savings_id,
+        Savings.user_id == current_user.id
+    ).first()
+
     if not savings:
         raise HTTPException(status_code=404, detail="Savings not found")
 
@@ -49,8 +55,9 @@ def create(
     return new_savings
 
 
-@router.put("/", response_model=SavingsResponse, status_code=status.HTTP_200_OK)
+@router.put("/{savings_id}", response_model=SavingsResponse, status_code=status.HTTP_200_OK)
 def update(
+    savings_id: int,
     savings: SavingsUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -58,12 +65,15 @@ def update(
     """
     Updating savings for a user
     """
-    existing_savings = db.query(Savings).filter(Savings.user_id == current_user.id).first()
+    existing_savings = db.query(Savings).filter(
+        Savings.user_id == current_user.id,
+        Savings.id == savings_id
+    ).first()
 
     if not existing_savings:
         raise HTTPException(status_code=404, detail="Savings not found")
 
-    update_data = savings.dict(exclude_unset=True)
+    update_data = savings.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(existing_savings, key, value)
 
@@ -73,7 +83,7 @@ def update(
     return existing_savings
 
 
-@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{savings_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -81,7 +91,10 @@ def delete(
     """
     Deleting savings of a user
     """
-    existing_savings = db.query(Savings).filter(Savings.user_id == current_user.id).first()
+    existing_savings = db.query(Savings).filter(
+        Savings.user_id == current_user.id,
+        Savings.id == savings_id
+    ).first()
 
     if not existing_savings:
         raise HTTPException(status_code=404, detail="Savings not found")
