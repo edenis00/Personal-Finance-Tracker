@@ -13,10 +13,9 @@ class SavingsCreate(BaseModel):
     amount: float
     current_amount: float
     target_date: datetime
-    duration_months: datetime
+    duration_months: int
     description: str
     is_completed: bool
-    user_id: int
 
 
 class SavingsUpdate(BaseModel):

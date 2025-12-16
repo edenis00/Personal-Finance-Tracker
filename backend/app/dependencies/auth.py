@@ -17,11 +17,7 @@ def get_current_user(authorization: str | None = Header(None), db: Session = Dep
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    print("Authorization header received:", authorization)
-
     token = authorization.split(" ")[1]
-
-    print("Token received in header:", token)
 
     try:
         payload = decode_access_token(token)

@@ -2,6 +2,9 @@
 Main appplication file
 """
 import logging
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import auth_router, user_router, income_router, expense_router, savings_router
@@ -9,7 +12,7 @@ from app.routes import auth_router, user_router, income_router, expense_router, 
 
 app = FastAPI(
     title="Personal Finance Tracker",
-    description="An API to help you track your personal finances, including income, expenses, and budgets.",
+    description="An API to help you track your personal finances, including income, expenses, and savings.",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -23,6 +26,10 @@ app.include_router(router=savings_router)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,

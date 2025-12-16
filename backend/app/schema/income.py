@@ -3,7 +3,7 @@ Income schema
 """
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class IncomeCreate(BaseModel):
@@ -13,7 +13,16 @@ class IncomeCreate(BaseModel):
     amount: float
     source: str
     date: Optional[datetime] = None
-    user_id: int
+
+    @field_validator('amount')
+    @classmethod
+    def amount_is_positive(cls, value):
+        """
+        Validate that the amount is positive
+        """
+        if value <= 0:
+            raise ValueError("Amount must be positive")
+        return value
 
 
 class IncomeUpdate(BaseModel):

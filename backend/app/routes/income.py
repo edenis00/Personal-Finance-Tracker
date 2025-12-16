@@ -27,7 +27,7 @@ def create_income(
     """
     Create a new income entry
     """
-    new_income = Income(**income.model_dump())
+    new_income = Income(**income.model_dump(), user_id=current_user.id)
 
     if not check_income_validity(new_income):
         raise HTTPException(status_code=400, detail="Invalid income data")

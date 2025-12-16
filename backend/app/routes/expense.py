@@ -19,12 +19,13 @@ router = APIRouter(
 @router.post("/", response_model=ExpenseResponse, status_code=status.HTTP_201_CREATED)
 def create_expense(
     expense: ExpenseCreate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)):
     """
     Create a new expense entry
     """
 
-    db_expense = Expense(**expense.model_dump())
+    db_expense = Expense(**expense.model_dump(), user_id=current_user.id)
     db.add(db_expense)
     db.commit()
     db.refresh(db_expense)
@@ -78,10 +79,9 @@ def update_expense(
         setattr(expense_exists, key, value)
 
     db.commit()
-    db.refresh(db_expense)
+    db.refresh(expense_exists)
 
-    return db_expense
-
+    return expense_exists
 
 @router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_expense(

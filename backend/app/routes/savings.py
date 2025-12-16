@@ -42,11 +42,8 @@ def create(
     """
     Creating new savings for a user
     """
-    savings = db.query(Savings).filter(Savings.user_id == current_user.id).first()
-    if savings:
-        raise HTTPException(status_code=409, detail="Savings already exists for this user")
 
-    new_savings = Savings(**saving.model_dump())
+    new_savings = Savings(**saving.model_dump(), user_id=current_user.id)
 
     db.add(new_savings)
     db.commit()
@@ -85,6 +82,7 @@ def update(
 
 @router.delete("/{savings_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete(
+    savings_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -92,8 +90,8 @@ def delete(
     Deleting savings of a user
     """
     existing_savings = db.query(Savings).filter(
-        Savings.user_id == current_user.id,
-        Savings.id == savings_id
+        Savings.id == savings_id,
+        Savings.user_id == current_user.id
     ).first()
 
     if not existing_savings:

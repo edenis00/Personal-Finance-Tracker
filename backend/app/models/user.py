@@ -27,9 +27,9 @@ class User(Base):
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     # Relationships
-    incomes = relationship("Income", back_populates="user")
-    expenses = relationship("Expense", back_populates="user")
-    savings = relationship("Savings", back_populates="user")
+    incomes = relationship("Income", back_populates="user", cascade="all, delete-orphan")
+    expenses = relationship("Expense", back_populates="user", cascade="all, delete-orphan")
+    savings = relationship("Savings", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         """
