@@ -11,17 +11,24 @@ class SavingsCreate(BaseModel):
     Schema for create
     """
     amount: float
-    current_amount: float
-    target_date: datetime
-    duration_months: int
-    description: str
-    is_completed: bool
+    current_amount: float = 0.0
+    target_date: Optional[datetime] = None
+    duration_months: Optional[int] = None
+    description: Optional[str] = None
+    is_completed: bool = False
 
     @field_validator("amount", "current_amount")
     @classmethod
     def validate_amounts(cls, value):
         if value < 0:
             raise ValueError("Amount must be non-negative")
+        return value
+
+    @field_validator("duration_months")
+    @classmethod
+    def validate_duration(cls, value):
+        if value <= 0:
+            raise ValueError("Duration must be a positive integer")
         return value
 
 
@@ -36,12 +43,18 @@ class SavingsUpdate(BaseModel):
     description: Optional[str]
     is_completed: Optional[bool]
 
-
     @field_validator("amount", "current_amount")
     @classmethod
     def validate_amounts(cls, value):
         if value is not None and value < 0:
             raise ValueError("Amount must be non-negative")
+        return value
+
+    @field_validator("duration_months")
+    @classmethod
+    def validate_duration(cls, value):
+        if value is not None and value <= 0:
+            raise ValueError("Duration must be a positive integer")
         return value
 
 
