@@ -1,9 +1,9 @@
 """
 Schema models
 """
-from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
+from pydantic import BaseModel, ConfigDict
 
 
 class SavingsCreate(BaseModel):
@@ -34,6 +34,7 @@ class SavingsResponse(BaseModel):
     """
     Schema for response
     """
+    id: int
     amount: float
     current_amount: float
     target_date: datetime
