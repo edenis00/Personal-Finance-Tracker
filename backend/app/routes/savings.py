@@ -47,7 +47,7 @@ def read_savings(
     ).all()
 
     if not savings_list:
-        raise HTTPException(status_code=404, detail="No savings found")
+        raise HTTPException(status_code=404, detail="Savings not found")
 
     return savings_list
 

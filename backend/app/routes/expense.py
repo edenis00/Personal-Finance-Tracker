@@ -33,27 +33,6 @@ def create_expense(
     return db_expense
 
 
-@router.get("/{expense_id}", response_model=ExpenseResponse)
-def read_expense(
-    expense_id: int,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Retrieve an expense entry by ID
-    """
-
-    expense_exists = db.query(Expense).filter(
-        Expense.id == expense_id,
-        Expense.user_id == current_user.id
-    ).first()
-
-    if not expense_exists:
-        raise HTTPException(status_code=404, detail="Expense not found")
-
-    return expense_exists
-
-
 @router.get("/", response_model=list[ExpenseResponse])
 def read_expenses(
     current_user: User = Depends(get_current_user),
@@ -66,9 +45,48 @@ def read_expenses(
     expenses = db.query(Expense).filter(Expense.user_id == current_user.id).all()
 
     if not expenses:
-        raise HTTPException(status_code=404, detail="No expenses found for this user")
+        raise HTTPException(status_code=404, detail="Expenses not found")
 
     return expenses
+
+
+@router.get("/total")
+def get_total_expenses(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Calculate total expenses for a user
+    """
+
+    expenses = db.query(Expense).filter(Expense.user_id == current_user.id).all()
+
+    if not expenses:
+        return {"user_id": current_user.id, "total_expenses": 0.0}
+
+    total = calculate_total_expenses(expenses)
+
+    return {"user_id": current_user.id, "total_expenses": total}
+
+
+@router.get("/category/{category}", response_model=list[ExpenseResponse])
+def get_expenses_by_category(
+    category: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieve expenses for a user filtered by category
+    """
+
+    expenses = db.query(Expense).filter(Expense.user_id == current_user.id).all()
+
+    if not expenses:
+        raise HTTPException(status_code=404, detail="Expenses not found")
+
+    filtered_expenses = filter_expenses_by_category(expenses, category)
+
+    return filtered_expenses
 
 
 @router.put("/{expense_id}", response_model=ExpenseResponse)
@@ -124,40 +142,22 @@ def delete_expense(
     return None
 
 
-@router.get("/total/")
-def get_total_expenses(
+@router.get("/{expense_id}", response_model=ExpenseResponse)
+def read_expense(
+    expense_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Calculate total expenses for a user
+    Retrieve an expense entry by ID
     """
 
-    expenses = db.query(Expense).filter(Expense.user_id == current_user.id).all()
+    expense_exists = db.query(Expense).filter(
+        Expense.id == expense_id,
+        Expense.user_id == current_user.id
+    ).first()
 
-    if not expenses:
-        return {"user_id": current_user.id, "total_expenses": 0.0}
+    if not expense_exists:
+        raise HTTPException(status_code=404, detail="Expense not found")
 
-    total = calculate_total_expenses(expenses)
-
-    return {"user_id": current_user.id, "total_expenses": total}
-
-
-@router.get("/category/{category}", response_model=list[ExpenseResponse])
-def get_expenses_by_category(
-    category: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Retrieve expenses for a user filtered by category
-    """
-
-    expenses = db.query(Expense).filter(Expense.user_id == current_user.id).all()
-
-    if not expenses:
-        raise HTTPException(status_code=404, detail="No expenses found for this user")
-    
-    filtered_expenses = filter_expenses_by_category(expenses, category)
-
-    return filtered_expenses
+    return expense_exists
