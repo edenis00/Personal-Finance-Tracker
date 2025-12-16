@@ -25,7 +25,7 @@ class SavingsUpdate(BaseModel):
     amount: Optional[float]
     current_amount: Optional[float]
     target_date: Optional[datetime]
-    duration_months: Optional[datetime]
+    duration_months: Optional[int]
     description: Optional[str]
     is_completed: Optional[bool]
 
@@ -37,7 +37,7 @@ class SavingsResponse(BaseModel):
     amount: float
     current_amount: float
     target_date: datetime
-    duration_months: datetime
+    duration_months: int
     description: str
     is_completed: bool
     user_id: int
