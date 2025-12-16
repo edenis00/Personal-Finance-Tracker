@@ -57,7 +57,7 @@ def update(db: Session, user: UserUpdate, user_id: int):
     if not update_user:
         return None
 
-    update_data = user.dict(exclude_unset=True)
+    update_data = user.model_dump(exclude_unset=True)
 
     if "password" in update_data and update_data["password"]:
         update_data["password"] = hash_password(update_data["password"])
