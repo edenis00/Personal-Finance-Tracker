@@ -44,9 +44,6 @@ def read_expenses(
 
     expenses = db.query(Expense).filter(Expense.user_id == current_user.id).all()
 
-    if not expenses:
-        raise HTTPException(status_code=404, detail="Expenses not found")
-
     return expenses
 
 
@@ -87,6 +84,27 @@ def get_expenses_by_category(
     filtered_expenses = filter_expenses_by_category(expenses, category)
 
     return filtered_expenses
+
+
+@router.get("/{expense_id}", response_model=ExpenseResponse)
+def read_expense(
+    expense_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieve an expense entry by ID
+    """
+
+    expense_exists = db.query(Expense).filter(
+        Expense.id == expense_id,
+        Expense.user_id == current_user.id
+    ).first()
+
+    if not expense_exists:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    return expense_exists
 
 
 @router.put("/{expense_id}", response_model=ExpenseResponse)
@@ -140,24 +158,3 @@ def delete_expense(
     db.commit()
 
     return None
-
-
-@router.get("/{expense_id}", response_model=ExpenseResponse)
-def read_expense(
-    expense_id: int,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Retrieve an expense entry by ID
-    """
-
-    expense_exists = db.query(Expense).filter(
-        Expense.id == expense_id,
-        Expense.user_id == current_user.id
-    ).first()
-
-    if not expense_exists:
-        raise HTTPException(status_code=404, detail="Expense not found")
-
-    return expense_exists

@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     secret_key: str
     algorithm: str
 
-    access_token_expire_minutes: int
+    access_token_expire_minutes: int = 60
     cors_allowed_origins: str
 
     model_config = {
@@ -43,5 +43,12 @@ class Settings(BaseSettings):
             f"postgresql+psycopg2://{self.db_user}:{self.db_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
+
+    @property
+    def ALLOWED_ORIGINS(self):
+        """
+        Get the list of allowed origins for CORS from a comma-separated string.
+        """
+        return [origins.strip() for origins in self.cors_allowed_origins.split(",")]
 
 settings = Settings()

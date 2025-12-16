@@ -48,6 +48,7 @@ class ExpenseResponse(BaseModel):
     id: int
     amount: float
     category: str
+    date: datetime
     user_id: int
     created_at: datetime
     updated_at: datetime

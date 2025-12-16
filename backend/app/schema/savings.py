@@ -27,7 +27,7 @@ class SavingsCreate(BaseModel):
     @field_validator("duration_months")
     @classmethod
     def validate_duration(cls, value):
-        if value <= 0:
+        if value is not None and value <= 0:
             raise ValueError("Duration must be a positive integer")
         return value
 
@@ -65,9 +65,9 @@ class SavingsResponse(BaseModel):
     id: int
     amount: float
     current_amount: float
-    target_date: datetime
-    duration_months: int
-    description: str
+    target_date: Optional[datetime] = None
+    duration_months: Optional[int] = None
+    description: Optional[str] = None
     is_completed: bool
     user_id: int
     created_at: datetime

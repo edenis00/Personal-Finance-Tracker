@@ -46,9 +46,6 @@ def read_savings(
         Savings.user_id == current_user.id
     ).all()
 
-    if not savings_list:
-        raise HTTPException(status_code=404, detail="Savings not found")
-
     return savings_list
 
 

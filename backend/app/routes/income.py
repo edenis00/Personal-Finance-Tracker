@@ -69,9 +69,6 @@ def read_incomes(
     """
     incomes = db.query(Income).filter(Income.user_id == current_user.id).all()
 
-    if not incomes:
-        raise HTTPException(status_code=404, detail="Incomes not found")
-
     return incomes
 
 

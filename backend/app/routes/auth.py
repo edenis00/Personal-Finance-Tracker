@@ -23,7 +23,7 @@ def me(current_user: User = Depends(get_current_user)):
 
 
 @router.post("/login", status_code=status.HTTP_200_OK)
-@limiter.limit("5/minute") # Rate limiting: 5 requests per minute
+@limiter.limit("5/minute")  # Rate limiting: 5 requests per minute
 def login(request: Request, payload: UserLogin, db: Session = Depends(get_db)):
     """User Login route"""
 
