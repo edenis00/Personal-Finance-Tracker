@@ -3,7 +3,7 @@ Schema models
 """
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class SavingsCreate(BaseModel):
@@ -17,6 +17,13 @@ class SavingsCreate(BaseModel):
     description: str
     is_completed: bool
 
+    @field_validator("amount", "current_amount")
+    @classmethod
+    def validate_amounts(cls, value):
+        if value < 0:
+            raise ValueError("Amount must be non-negative")
+        return value
+
 
 class SavingsUpdate(BaseModel):
     """
@@ -28,6 +35,14 @@ class SavingsUpdate(BaseModel):
     duration_months: Optional[int]
     description: Optional[str]
     is_completed: Optional[bool]
+
+
+    @field_validator("amount", "current_amount")
+    @classmethod
+    def validate_amounts(cls, value):
+        if value is not None and value < 0:
+            raise ValueError("Amount must be non-negative")
+        return value
 
 
 class SavingsResponse(BaseModel):
