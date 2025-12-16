@@ -13,7 +13,7 @@ router = APIRouter(prefix="/savings", tags=["Savings"])
 
 
 @router.get("/{savings_id}", response_model=SavingsResponse)
-def fetch_savings(
+def read_saving(
     savings_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -31,6 +31,25 @@ def fetch_savings(
         raise HTTPException(status_code=404, detail="Savings not found")
 
     return savings
+
+
+@router.get("/", response_model=list[SavingsResponse])
+def read_savings(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieving all savings for a user
+    """
+
+    savings_list = db.query(Savings).filter(
+        Savings.user_id == current_user.id
+    ).all()
+
+    if not savings_list:
+        raise HTTPException(status_code=404, detail="No savings found")
+
+    return savings_list
 
 
 @router.post("/", response_model=SavingsResponse, status_code=status.HTTP_201_CREATED)

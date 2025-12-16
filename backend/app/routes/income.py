@@ -40,7 +40,7 @@ def create_income(
 
 
 @router.get("/{income_id}", response_model=IncomeResponse)
-def fetch_income(
+def read_income(
     income_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -57,6 +57,22 @@ def fetch_income(
         raise HTTPException(status_code=404, detail="Income not found")
 
     return check_income_exists
+
+
+@router.get("/", response_model=list[IncomeResponse])
+def read_incomes(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieve all income entries for the current user
+    """
+    incomes = db.query(Income).filter(Income.user_id == current_user.id).all()
+
+    if not incomes:
+        raise HTTPException(status_code=404, detail="No incomes found for this user")
+
+    return incomes
 
 
 @router.put("/{income_id}", response_model=IncomeResponse)

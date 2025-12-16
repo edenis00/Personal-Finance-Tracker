@@ -54,6 +54,23 @@ def read_expense(
     return expense_exists
 
 
+@router.get("/", response_model=list[ExpenseResponse])
+def read_expenses(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieve all expense entries for the current user
+    """
+
+    expenses = db.query(Expense).filter(Expense.user_id == current_user.id).all()
+
+    if not expenses:
+        raise HTTPException(status_code=404, detail="No expenses found for this user")
+
+    return expenses
+
+
 @router.put("/{expense_id}", response_model=ExpenseResponse)
 def update_expense(
     expense_id: int,
