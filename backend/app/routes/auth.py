@@ -10,7 +10,7 @@ from app.db.database import get_db
 from app.models import User
 from app.schema.user import UserCreate, UserResponse, UserLogin
 from app.dependencies.auth import get_current_user
-from app.main import app
+from app.utils.rate_limits import limiter
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -23,7 +23,7 @@ def me(current_user: User = Depends(get_current_user)):
 
 
 @router.post("/login", status_code=status.HTTP_200_OK)
-@app.state.limiter.limit("5/minute") # Rate limiting: 5 requests per minute
+limiter.limit("5/minute") # Rate limiting: 5 requests per minute
 def login(request: Request, payload: UserLogin, db: Session = Depends(get_db)):
     """User Login route"""
 
