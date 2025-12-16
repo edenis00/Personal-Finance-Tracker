@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     secret_key: str
     algorithm: str
 
+    access_token_expire_minutes: int
+    cors_allowed_origins: str
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",

@@ -1,13 +1,13 @@
 """
 Main appplication file
 """
-import os
 import logging
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.utils.rate_limits import limiter
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
 from app.routes import auth_router, user_router, income_router, expense_router, savings_router
 
 
@@ -31,10 +31,7 @@ logger = logging.getLogger(__name__)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-allowed_origins = os.getenv(
-    "CORS_ALLOWED_ORIGINS",
-    "http://localhost:8000, http://localhost:5173"
-).split(",")
+allowed_origins = settings.cors_allowed_origins.split(",")
 
 app.add_middleware(
     CORSMiddleware,

@@ -1,7 +1,7 @@
 """
 Authentication utilities
 """
-import os
+
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, status
 from jose import jwt, JWTError
@@ -12,7 +12,7 @@ from app.core.config import settings
 pwd_context = CryptContext(schemes=["argon2", "bcrypt"], deprecated="auto")
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 
 def hash_password(password: str) -> str:
