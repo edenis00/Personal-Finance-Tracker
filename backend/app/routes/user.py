@@ -1,6 +1,7 @@
 """
 User routes
 """
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db.database import get_db
@@ -14,6 +15,7 @@ router = APIRouter(
     tags=["users"]
 )
 
+logger = logging.getLogger(__name__)
 
 @router.get("/me", response_model=UserResponse)
 def fetch_user(
@@ -21,10 +23,14 @@ def fetch_user(
     db: Session = Depends(get_db)
 ):
     """Get a user by ID"""
+    logging.info("Fetching user profile for user_id: %s", current_user.id)
     user = fetch(db, current_user.id)
+
     if not user:
+        logging.warning("User not found for user_id: %s", current_user.id)
         raise HTTPException(status_code=404, detail="User not found")
 
+    logging.info("User profile retrieved for user_id: %s", current_user.id)
     return user
 
 
@@ -35,11 +41,14 @@ def update_profile(
     db: Session = Depends(get_db)
 ):
     """Update a user"""
+    logging.info("Updating user profile for user_id: %s", current_user.id)
     updated_user = update(db, user, current_user.id)
 
     if not updated_user:
+        logging.warning("User not found for user_id: %s", current_user.id)
         raise HTTPException(status_code=404, detail="User not found")
 
+    logging.info("User profile updated for user_id: %s", current_user.id)
     return updated_user
 
 # admin routes

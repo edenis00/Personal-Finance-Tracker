@@ -1,6 +1,7 @@
 """
 Docstring for backend.app.routes.savings
 """
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.models import Savings, User
@@ -11,6 +12,7 @@ from app.schema.savings import SavingsCreate, SavingsResponse, SavingsUpdate
 
 router = APIRouter(prefix="/savings", tags=["Savings"])
 
+logger = logging.getLogger(__name__)
 
 @router.get("/{savings_id}", response_model=SavingsResponse)
 def read_saving(
@@ -22,14 +24,17 @@ def read_saving(
     Retrieving savings for a user
     """
 
+    logging.info("Fetching savings id: %s for user_id: %s", savings_id, current_user.id)
     savings = db.query(Savings).filter(
         Savings.id == savings_id,
         Savings.user_id == current_user.id
     ).first()
 
     if not savings:
+        logging.warning("Savings id: %s not found for user_id: %s", savings_id, current_user.id)
         raise HTTPException(status_code=404, detail="Savings not found")
 
+    logging.info("Savings id: %s retrieved for user_id: %s", savings_id, current_user.id)
     return savings
 
 
@@ -41,11 +46,13 @@ def read_savings(
     """
     Retrieving all savings for a user
     """
+    logging.info("Fetching all savings for user_id: %s", current_user.id)
 
     savings_list = db.query(Savings).filter(
         Savings.user_id == current_user.id
     ).all()
 
+    logging.info("Found %d savings for user_id: %s", len(savings_list), current_user.id)
     return savings_list
 
 
@@ -59,12 +66,14 @@ def create(
     Creating new savings for a user
     """
 
+    logging.info("Creating savings for user_id: %s, amount: %s, goal: %s", current_user.id, saving.amount, saving.goal)
     new_savings = Savings(**saving.model_dump(), user_id=current_user.id)
 
     db.add(new_savings)
     db.commit()
     db.refresh(new_savings)
 
+    logging.info("Savings created with id: %s for user_id: %s", new_savings.id, current_user.id)
     return new_savings
 
 
@@ -78,12 +87,14 @@ def update(
     """
     Updating savings for a user
     """
+    logging.info("Updating savings id: %s for user_id: %s", savings_id, current_user.id)
     existing_savings = db.query(Savings).filter(
         Savings.user_id == current_user.id,
         Savings.id == savings_id
     ).first()
 
     if not existing_savings:
+        logging.warning("Savings id: %s not found for user_id: %s", savings_id, current_user.id)
         raise HTTPException(status_code=404, detail="Savings not found")
 
     update_data = savings.model_dump(exclude_unset=True)
@@ -93,6 +104,7 @@ def update(
     db.commit()
     db.refresh(existing_savings)
 
+    logging.info("Savings id: %s updated for user_id: %s", savings_id, current_user.id)
     return existing_savings
 
 
@@ -105,15 +117,18 @@ def delete(
     """
     Deleting savings of a user
     """
+    logging.info("Deleting savings id: %s for user_id: %s", savings_id, current_user.id)
     existing_savings = db.query(Savings).filter(
         Savings.id == savings_id,
         Savings.user_id == current_user.id
     ).first()
 
     if not existing_savings:
+        logging.warning("Savings id: %s not found for user_id: %s", savings_id, current_user.id)
         raise HTTPException(status_code=404, detail="Savings not found")
 
     db.delete(existing_savings)
     db.commit()
 
+    logging.info("Savings id: %s deleted for user_id: %s", savings_id, current_user.id)
     return None

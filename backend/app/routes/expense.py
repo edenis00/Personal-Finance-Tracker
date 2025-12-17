@@ -1,6 +1,7 @@
 """
 Expense routes 
 """
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
@@ -15,6 +16,8 @@ router = APIRouter(
     tags=["expenses"],
 )
 
+logger = logging.getLogger(__name__)
+
 
 @router.post("/", response_model=ExpenseResponse, status_code=status.HTTP_201_CREATED)
 def create_expense(
@@ -24,11 +27,13 @@ def create_expense(
     """
     Create a new expense entry
     """
+    logging.info("Creating expense for user_id: %s, amount: %s, category: %s", current_user.id, expense.amount, expense.category)
 
     db_expense = Expense(**expense.model_dump(), user_id=current_user.id)
     db.add(db_expense)
     db.commit()
     db.refresh(db_expense)
+    logger.info("Expense created with id: %s for user_id: %s", db_expense.id, current_user.id)
 
     return db_expense
 
@@ -41,9 +46,9 @@ def read_expenses(
     """
     Retrieve all expense entries for the current user
     """
-
+    logging.info("Fetching expenses for user_id: %s", current_user.id)
     expenses = db.query(Expense).filter(Expense.user_id == current_user.id).all()
-
+    logging.info("Found %d expenses for user_id: %s", len(expenses), current_user.id)   
     return expenses
 
 
@@ -55,14 +60,16 @@ def get_total_expenses(
     """
     Calculate total expenses for a user
     """
-
+    logging.info("Calculating total expenses for user_id: %s", current_user.id)
     expenses = db.query(Expense).filter(Expense.user_id == current_user.id).all()
 
     if not expenses:
+        logging.warning("No expenses found for user_id: %s", current_user.id)
         return {"user_id": current_user.id, "total_expenses": 0.0}
 
     total = calculate_total_expenses(expenses)
 
+    logging.info("Total expenses for user_id: %s is %f", current_user.id, total)
     return {"user_id": current_user.id, "total_expenses": total}
 
 
@@ -75,14 +82,15 @@ def get_expenses_by_category(
     """
     Retrieve expenses for a user filtered by category
     """
-
+    logging.info("Fetching expenses for user_id: %s in category: %s", current_user.id, category)
     expenses = db.query(Expense).filter(Expense.user_id == current_user.id).all()
 
     if not expenses:
+        logging.warning("No expenses found for user_id: %s", current_user.id)
         raise HTTPException(status_code=404, detail="Expenses not found")
 
     filtered_expenses = filter_expenses_by_category(expenses, category)
-
+    logging.info("Found %d expenses for user_id: %s in category: %s", len(filtered_expenses), current_user.id, category)
     return filtered_expenses
 
 
@@ -95,15 +103,17 @@ def read_expense(
     """
     Retrieve an expense entry by ID
     """
-
+    logging.info("Fetching expense id: %s for user_id: %s", expense_id, current_user.id)
     expense_exists = db.query(Expense).filter(
         Expense.id == expense_id,
         Expense.user_id == current_user.id
     ).first()
 
     if not expense_exists:
+        logging.warning("Expense id: %s not found for user_id: %s", expense_id, current_user.id)
         raise HTTPException(status_code=404, detail="Expense not found")
 
+    logging.info("Expense id: %s found for user_id: %s", expense_id, current_user.id)
     return expense_exists
 
 
@@ -117,13 +127,14 @@ def update_expense(
     """
     Update an existing expense entry
     """
-
+    logging.info("Updating expense id: %s for user_id: %s", expense_id, current_user.id)
     expense_exists = db.query(Expense).filter(
         Expense.id == expense_id,
         Expense.user_id == current_user.id
     ).first()
 
     if expense_exists is None:
+        logging.warning("Expense id: %s not found for user_id: %s", expense_id, current_user.id)
         raise HTTPException(status_code=404, detail="Expense not found")
 
     db_expense = expense.model_dump(exclude_unset=True)
@@ -134,6 +145,7 @@ def update_expense(
     db.commit()
     db.refresh(expense_exists)
 
+    logging.info("Expense id: %s updated for user_id: %s", expense_id, current_user.id)
     return expense_exists
 
 @router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -146,15 +158,18 @@ def delete_expense(
     Delete an expense entry
     """
 
+    logging.info("Deleting expense id: %s for user_id: %s", expense_id, current_user.id)
     db_expense = db.query(Expense).filter(
         Expense.id == expense_id,
         Expense.user_id == current_user.id
     ).first()
 
     if db_expense is None:
+        logging.warning("Expense id: %s not found for user_id: %s", expense_id, current_user.id)
         raise HTTPException(status_code=404, detail="Expense not found")
 
     db.delete(db_expense)
     db.commit()
 
+    logging.info("Expense id: %s deleted for user_id: %s", expense_id, current_user.id)
     return None

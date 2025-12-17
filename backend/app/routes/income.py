@@ -1,6 +1,7 @@
 """
 Income routes
 """
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
@@ -17,6 +18,7 @@ router = APIRouter(
     tags=["incomes"],
 )
 
+logger = logging.getLogger(__name__)
 
 @router.post("/", response_model=IncomeResponse, status_code=status.HTTP_201_CREATED)
 def create_income(
@@ -27,15 +29,18 @@ def create_income(
     """
     Create a new income entry
     """
+    logging.info("Creating income for user_id: %s, amount: %s, source: %s", current_user.id, income.amount, income.source)
     new_income = Income(**income.model_dump(), user_id=current_user.id)
 
     if not check_income_validity(new_income):
+        logging.warning("Invalid income data for user_id: %s", current_user.id)
         raise HTTPException(status_code=400, detail="Invalid income data")
 
     db.add(new_income)
     db.commit()
     db.refresh(new_income)
 
+    logging.info("Income created with id: %s for user_id: %s", new_income.id, current_user.id)
     return new_income
 
 
@@ -48,14 +53,17 @@ def read_income(
     """
     Retrieve an income entry by ID
     """
+    logging.info("Fetching income id: %s for user_id: %s", income_id, current_user.id)
     check_income_exists = db.query(Income).filter(
         Income.user_id == current_user.id,
         Income.id == income_id
     ).first()
 
     if not check_income_exists:
+        logging.warning("Income id: %s not found for user_id: %s", income_id, current_user.id)
         raise HTTPException(status_code=404, detail="Income not found")
 
+    logging.info("Income id: %s found for user_id: %s", income_id, current_user.id)
     return check_income_exists
 
 
@@ -67,8 +75,10 @@ def read_incomes(
     """
     Retrieve all income entries for the current user
     """
+    logging.info("Fetching incomes for user_id: %s", current_user.id)
     incomes = db.query(Income).filter(Income.user_id == current_user.id).all()
 
+    logging.info("Found %d incomes for user_id: %s", len(incomes), current_user.id)
     return incomes
 
 
@@ -82,15 +92,18 @@ def update_income(
     """
     Update an existing income entry
     """
+    logging.info("Updating income id: %s for user_id: %s", income_id, current_user.id)
     check_income_exists = db.query(Income).filter(
         Income.id == income_id,
         Income.user_id == current_user.id
     ).first()
 
     if check_income_exists is None:
+        logging.warning("Income id: %s not found for user_id: %s", income_id, current_user.id)
         raise HTTPException(status_code=404, detail="Income not found")
 
     if not check_income_validity(check_income_exists):
+        logging.warning("Invalid income data for income id: %s, user_id: %s", income_id, current_user.id)
         raise HTTPException(status_code=400, detail="Invalid income data")
 
     income_data = income.model_dump(exclude_unset=True)
@@ -100,6 +113,7 @@ def update_income(
     db.commit()
     db.refresh(check_income_exists)
 
+    logging.info("Income id: %s updated for user_id: %s", income_id, current_user.id)
     return check_income_exists
 
 
@@ -113,15 +127,18 @@ def delete_income(
     Delete an income entry
     """
 
+    logging.info("Deleting income id: %s for user_id: %s", income_id, current_user.id)
     check_income_exists = db.query(Income).filter(
         Income.user_id == current_user.id,
         Income.id == income_id
     ).first()
 
     if check_income_exists is None:
+        logging.warning("Income id: %s not found for user_id: %s", income_id, current_user.id)
         raise HTTPException(status_code=404, detail="Income not found")
 
     db.delete(check_income_exists)
     db.commit()
 
+    logging.info("Income id: %s deleted for user_id: %s", income_id, current_user.id)
     return None
