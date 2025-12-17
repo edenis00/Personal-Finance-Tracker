@@ -15,15 +15,17 @@ app = FastAPI(
     title="Personal Finance Tracker",
     description="An API to help you track your personal finances, including income, expenses, and savings.",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
+    docs_url="/api/v1/docs",
+    redoc_url="/api/v1/redocs"
 )
 
-app.include_router(router=auth_router)
-app.include_router(router=user_router)
-app.include_router(router=income_router)
-app.include_router(router=expense_router)
-app.include_router(router=savings_router)
+API_V1_PREFIX = "/api/v1"
+
+app.include_router(router=auth_router, prefix=API_V1_PREFIX)
+app.include_router(router=user_router, prefix=API_V1_PREFIX)
+app.include_router(router=income_router, prefix=API_V1_PREFIX)
+app.include_router(router=expense_router, prefix=API_V1_PREFIX)
+app.include_router(router=savings_router, prefix=API_V1_PREFIX)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
