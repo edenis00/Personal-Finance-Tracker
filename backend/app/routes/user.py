@@ -17,7 +17,7 @@ router = APIRouter(
 
 logger = logging.getLogger(__name__)
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/", response_model=UserResponse)
 def fetch_user(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
