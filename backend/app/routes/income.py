@@ -8,9 +8,8 @@ from app.db.database import get_db
 from app.models import Income, User
 from app.schema.income import IncomeCreate, IncomeResponse, IncomeUpdate
 from app.dependencies.auth import get_current_user
-from app.utils.income import (
-    check_income_validity
-)
+from app.utils.income import check_income_validity
+from app.schema.base import SuccessResponse
 
 
 router = APIRouter(
@@ -20,7 +19,7 @@ router = APIRouter(
 
 logger = logging.getLogger(__name__)
 
-@router.post("/", response_model=IncomeResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=SuccessResponse[IncomeResponse], status_code=status.HTTP_201_CREATED)
 def create_income(
     income: IncomeCreate,
     current_user: User = Depends(get_current_user),
@@ -41,10 +40,13 @@ def create_income(
     db.refresh(new_income)
 
     logging.info("Income created with id: %s for user_id: %s", new_income.id, current_user.id)
-    return new_income
+    return SuccessResponse(
+        message="Income created successfully",
+        data=new_income
+    )
 
 
-@router.get("/{income_id}", response_model=IncomeResponse)
+@router.get("/{income_id}", response_model=SuccessResponse[IncomeResponse])
 def read_income(
     income_id: int,
     current_user: User = Depends(get_current_user),
@@ -64,7 +66,10 @@ def read_income(
         raise HTTPException(status_code=404, detail="Income not found")
 
     logging.info("Income id: %s found for user_id: %s", income_id, current_user.id)
-    return check_income_exists
+    return SuccessResponse(
+        message="Income retrieved successfully",
+        data=check_income_exists
+    )
 
 
 @router.get("/", response_model=list[IncomeResponse])
@@ -82,7 +87,7 @@ def read_incomes(
     return incomes
 
 
-@router.put("/{income_id}", response_model=IncomeResponse)
+@router.put("/{income_id}", response_model=SuccessResponse[IncomeResponse])
 def update_income(
     income_id: int,
     income: IncomeUpdate,
@@ -114,7 +119,10 @@ def update_income(
     db.refresh(check_income_exists)
 
     logging.info("Income id: %s updated for user_id: %s", income_id, current_user.id)
-    return check_income_exists
+    return SuccessResponse(
+        meessage="Income updated successfully",
+        data=check_income_exists
+    )
 
 
 @router.delete("/{income_id}",  status_code=status.HTTP_204_NO_CONTENT)

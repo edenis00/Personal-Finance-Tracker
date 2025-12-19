@@ -3,7 +3,7 @@ User Schemas
 """
 from typing import Optional
 from enum import Enum
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 from datetime import datetime
 
 
@@ -19,7 +19,7 @@ class UserCreate(BaseModel):
     """
     Schema for creating a new user
     """
-    email: str
+    email: EmailStr
     password: str
     first_name: str
     last_name: str

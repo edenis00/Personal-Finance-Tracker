@@ -9,6 +9,7 @@ from app.models import Expense, User
 from app.dependencies.auth import get_current_user
 from app.utils.expense import calculate_total_expenses, filter_expenses_by_category
 from app.schema.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
+from app.schema.base import ErrorResponse, SuccessResponse
 
 
 router = APIRouter(
@@ -19,7 +20,7 @@ router = APIRouter(
 logger = logging.getLogger(__name__)
 
 
-@router.post("/", response_model=ExpenseResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=SuccessResponse[ExpenseResponse], status_code=status.HTTP_201_CREATED)
 def create_expense(
     expense: ExpenseCreate,
     current_user: User = Depends(get_current_user),
@@ -35,7 +36,10 @@ def create_expense(
     db.refresh(db_expense)
     logger.info("Expense created with id: %s for user_id: %s", db_expense.id, current_user.id)
 
-    return db_expense
+    return SuccessResponse(
+        message="Expense created successfully",
+        data=db_expense
+    )
 
 
 @router.get("/", response_model=list[ExpenseResponse])
@@ -94,7 +98,7 @@ def get_expenses_by_category(
     return filtered_expenses
 
 
-@router.get("/{expense_id}", response_model=ExpenseResponse)
+@router.get("/{expense_id}", response_model=SuccessResponse[ExpenseResponse])
 def read_expense(
     expense_id: int,
     current_user: User = Depends(get_current_user),
@@ -114,10 +118,13 @@ def read_expense(
         raise HTTPException(status_code=404, detail="Expense not found")
 
     logging.info("Expense id: %s found for user_id: %s", expense_id, current_user.id)
-    return expense_exists
+    return SuccessResponse(
+        message="Expense retrieved successfully",
+        data=expense_exists
+    )
 
 
-@router.put("/{expense_id}", response_model=ExpenseResponse)
+@router.put("/{expense_id}", response_model=SuccessResponse[ExpenseResponse])
 def update_expense(
     expense_id: int,
     expense: ExpenseUpdate,
@@ -146,7 +153,10 @@ def update_expense(
     db.refresh(expense_exists)
 
     logging.info("Expense id: %s updated for user_id: %s", expense_id, current_user.id)
-    return expense_exists
+    return SuccessResponse(
+        message="Expense updated successfully",
+        data=expense_exists
+    )
 
 @router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_expense(
