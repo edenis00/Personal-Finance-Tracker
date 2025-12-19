@@ -34,7 +34,7 @@ def fetch_user(
     return user
 
 
-@router.put("/me", response_model=UserResponse)
+@router.put("/", response_model=UserResponse)
 def update_profile(
     user: UserUpdate,
     current_user: User = Depends(get_current_user),
