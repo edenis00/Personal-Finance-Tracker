@@ -32,6 +32,7 @@ class UserUpdate(BaseModel):
     """
     Schema for updating a user
     """
+    email: Optional[EmailStr] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone_number: Optional[str] = None
@@ -46,7 +47,7 @@ class UserResponse(BaseModel):
     Schema for user response
     """
     id: int
-    email: str
+    email: EmailStr
     first_name: str
     last_name: str
     phone_number: Optional[str] = None
@@ -64,5 +65,5 @@ class UserLogin(BaseModel):
     """
     Schema for user login
     """
-    email: str
+    email: EmailStr
     password: str
