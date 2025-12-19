@@ -56,7 +56,7 @@ def get_current_user(authorization: str | None = Header(None), db: Session = Dep
     return user
 
 
-def get_current_active_user(current_user: User = Depends(get_current_user)):
+def get_current_active_user(current_user: User = Depends(get_current_active_user)):
     """
     get_current_active_user
     """

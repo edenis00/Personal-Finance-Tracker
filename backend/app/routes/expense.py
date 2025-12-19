@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models import Expense, User
-from app.dependencies.auth import get_current_user
+from app.dependencies.auth import get_current_active_user
 from app.utils.expense import calculate_total_expenses, filter_expenses_by_category
 from app.schema.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 from app.schema.base import ErrorResponse, SuccessResponse
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 @router.post("/", response_model=SuccessResponse[ExpenseResponse], status_code=status.HTTP_201_CREATED)
 def create_expense(
     expense: ExpenseCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)):
     """
     Create a new expense entry
@@ -44,7 +44,7 @@ def create_expense(
 
 @router.get("/", response_model=list[ExpenseResponse])
 def read_expenses(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -58,7 +58,7 @@ def read_expenses(
 
 @router.get("/total")
 def get_total_expenses(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -80,7 +80,7 @@ def get_total_expenses(
 @router.get("/category/{category}", response_model=list[ExpenseResponse])
 def get_expenses_by_category(
     category: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -101,7 +101,7 @@ def get_expenses_by_category(
 @router.get("/{expense_id}", response_model=SuccessResponse[ExpenseResponse])
 def read_expense(
     expense_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -128,7 +128,7 @@ def read_expense(
 def update_expense(
     expense_id: int,
     expense: ExpenseUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -161,7 +161,7 @@ def update_expense(
 @router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_expense(
     expense_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """

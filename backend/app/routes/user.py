@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.dependencies.auth import get_current_user
+from app.dependencies.auth import get_current_active_user
 from app.models import User
 from app.schema.user import UserResponse, UserUpdate
 from app.utils.user import fetch, update
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 @router.get("/", response_model=UserResponse)
 def fetch_user(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """Get a user by ID"""
@@ -37,7 +37,7 @@ def fetch_user(
 @router.put("/", response_model=UserResponse)
 def update_profile(
     user: UserUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """Update a user"""

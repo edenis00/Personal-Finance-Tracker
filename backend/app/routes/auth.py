@@ -10,7 +10,7 @@ from app.utils.user import fetch_by_email, create
 from app.db.database import get_db
 from app.models import User
 from app.schema.user import UserCreate, UserResponse, UserLogin
-from app.dependencies.auth import get_current_user
+from app.dependencies.auth import get_current_active_user
 from app.utils.rate_limits import limiter
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.get("/me", response_model=UserResponse)
-def me(current_user: User = Depends(get_current_user)):
+def me(current_user: User = Depends(get_current_active_user)):
     """Get current authenticated user"""
     return current_user
 

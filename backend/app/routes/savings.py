@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.models import Savings, User
 from app.db.database import get_db
-from app.dependencies.auth import get_current_user
+from app.dependencies.auth import get_current_active_user
 from app.schema.savings import SavingsCreate, SavingsResponse, SavingsUpdate
 from app.schema.base import SuccessResponse, ErrorResponse
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 @router.get("/{savings_id}", response_model=SuccessResponse[SavingsResponse])
 def read_saving(
     savings_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -45,7 +45,7 @@ def read_saving(
 
 @router.get("/", response_model=list[SavingsResponse])
 def read_savings(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -64,7 +64,7 @@ def read_savings(
 @router.post("/", response_model=SuccessResponse[SavingsResponse], status_code=status.HTTP_201_CREATED)
 def create(
     saving: SavingsCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -89,7 +89,7 @@ def create(
 def update(
     savings_id: int,
     savings: SavingsUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -122,7 +122,7 @@ def update(
 @router.delete("/{savings_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete(
     savings_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """

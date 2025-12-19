@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models import Income, User
 from app.schema.income import IncomeCreate, IncomeResponse, IncomeUpdate
-from app.dependencies.auth import get_current_user
+from app.dependencies.auth import get_current_active_user
 from app.utils.income import check_income_validity
 from app.schema.base import SuccessResponse
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 @router.post("/", response_model=SuccessResponse[IncomeResponse], status_code=status.HTTP_201_CREATED)
 def create_income(
     income: IncomeCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -49,7 +49,7 @@ def create_income(
 @router.get("/{income_id}", response_model=SuccessResponse[IncomeResponse])
 def read_income(
     income_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -74,7 +74,7 @@ def read_income(
 
 @router.get("/", response_model=list[IncomeResponse])
 def read_incomes(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -91,7 +91,7 @@ def read_incomes(
 def update_income(
     income_id: int,
     income: IncomeUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -128,7 +128,7 @@ def update_income(
 @router.delete("/{income_id}",  status_code=status.HTTP_204_NO_CONTENT)
 def delete_income(
     income_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
