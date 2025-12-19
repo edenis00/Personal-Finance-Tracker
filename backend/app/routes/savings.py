@@ -8,13 +8,14 @@ from app.models import Savings, User
 from app.db.database import get_db
 from app.dependencies.auth import get_current_user
 from app.schema.savings import SavingsCreate, SavingsResponse, SavingsUpdate
+from app.schema.base import SuccessResponse, ErrorResponse
 
 
 router = APIRouter(prefix="/savings", tags=["Savings"])
 
 logger = logging.getLogger(__name__)
 
-@router.get("/{savings_id}", response_model=SavingsResponse)
+@router.get("/{savings_id}", response_model=SuccessResponse[SavingsResponse])
 def read_saving(
     savings_id: int,
     current_user: User = Depends(get_current_user),
@@ -35,7 +36,11 @@ def read_saving(
         raise HTTPException(status_code=404, detail="Savings not found")
 
     logging.info("Savings id: %s retrieved for user_id: %s", savings_id, current_user.id)
-    return savings
+
+    return SuccessResponse(
+        message="Savings retrieved successfully",
+        data=savings
+    )
 
 
 @router.get("/", response_model=list[SavingsResponse])
@@ -56,7 +61,7 @@ def read_savings(
     return savings_list
 
 
-@router.post("/", response_model=SavingsResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=SuccessResponse[SavingsResponse], status_code=status.HTTP_201_CREATED)
 def create(
     saving: SavingsCreate,
     current_user: User = Depends(get_current_user),
@@ -74,10 +79,13 @@ def create(
     db.refresh(new_savings)
 
     logging.info("Savings created with id: %s for user_id: %s", new_savings.id, current_user.id)
-    return new_savings
+    return SuccessResponse(
+        message="Savings created successfully",
+        data=new_savings
+    )
 
 
-@router.put("/{savings_id}", response_model=SavingsResponse, status_code=status.HTTP_200_OK)
+@router.put("/{savings_id}", response_model=SuccessResponse[SavingsResponse], status_code=status.HTTP_200_OK)
 def update(
     savings_id: int,
     savings: SavingsUpdate,
@@ -105,7 +113,10 @@ def update(
     db.refresh(existing_savings)
 
     logging.info("Savings id: %s updated for user_id: %s", savings_id, current_user.id)
-    return existing_savings
+    return SuccessResponse(
+        message="Savings updated successfully",
+        data=existing_savings
+    )
 
 
 @router.delete("/{savings_id}", status_code=status.HTTP_204_NO_CONTENT)
