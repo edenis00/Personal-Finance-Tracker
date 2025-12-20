@@ -2,19 +2,16 @@
 Docstring for backend.app.utils.savings
 """
 from app.models import Savings
+from app.core.permissions import Role
 
 
-def savings_exists(user_id, db):
+
+def check_ownership(savings, current_user) -> bool:
     """
-    Docstring for check_savings
-    
-    :param user_id: Description
-    :param db: Description
-    """
-    try:
-        if user_id:
-            user = db.query(Savings).filter(Savings.user_id == user_id).first()
-    except Exception as e:
-        return f"Error occured due: {e}"
+    Check if the savings entry belongs to the user
 
-    return user is not None
+    :param savings: Savings entry
+    :param current_user: Current user object
+    :return: True if the savings belongs to the user, False otherwise
+    """
+    return savings.user_id != current_user.id and current_user.role != Role.ADMIN.value

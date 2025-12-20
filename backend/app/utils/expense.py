@@ -1,6 +1,7 @@
 """
 Expense utility functions
 """
+from app.core.permissions import Role
 
 
 def calculate_total_expenses(expenses):
@@ -15,3 +16,10 @@ def filter_expenses_by_category(expenses, category):
     Filter expenses by a specific category
     """
     return [expense for expense in expenses if expense.category == category]
+
+
+def check_ownership(expense, current_user) -> bool:
+    """
+    Check if the expense belongs to the given user
+    """
+    return expense.user_id != current_user.id and current_user.role != Role.ADMIN.value

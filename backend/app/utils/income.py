@@ -2,6 +2,15 @@
 Income utilities
 """
 from collections import defaultdict
+from app.core.permissions import Role
+
+
+def check_ownership(income, current_user):
+    """
+    Check if the income belongs to the given user
+    """
+    return income.user_id != current_user.id and current_user.role != Role.ADMIN.value
+
 
 
 def check_income_validity(income):

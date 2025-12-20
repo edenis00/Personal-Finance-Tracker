@@ -37,7 +37,7 @@ def login(request: Request, payload: UserLogin, db: Session = Depends(get_db)):
         logger.warning("Failed login attempt for email: %s", payload.email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password"
+            detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
