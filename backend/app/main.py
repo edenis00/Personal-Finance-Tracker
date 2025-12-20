@@ -8,6 +8,7 @@ from app.utils.rate_limits import limiter
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.middleware.security import SecurityHeadersMiddleware
 from app.routes import auth_router, user_router, income_router, expense_router, savings_router
 
 
@@ -33,6 +34,7 @@ logger = logging.getLogger(__name__)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+app.add_middleware(SecurityHeadersMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

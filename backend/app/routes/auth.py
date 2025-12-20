@@ -38,6 +38,7 @@ def login(request: Request, payload: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     logger.info("User %s logged in successfully", payload.email)
