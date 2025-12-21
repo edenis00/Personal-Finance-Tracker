@@ -3,3 +3,4 @@ from .auth import router as auth_router
 from .income import router as income_router
 from .expense import router as expense_router
 from .savings import router as savings_router
+from .admin import router as admin_router

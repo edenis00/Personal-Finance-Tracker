@@ -11,8 +11,9 @@ class UserRole(str, Enum):
     """
     Enum for user roles
     """
-    user = "user"
-    admin = "admin"
+    USER = "USER"
+    ADMIN = "ADMIN"
+    MODERATOR = "MODERATOR"
 
 
 class UserCreate(BaseModel):
@@ -24,7 +25,7 @@ class UserCreate(BaseModel):
     first_name: str
     last_name: str
     phone_number: Optional[str] = None
-    role: UserRole = UserRole.user
+    role: UserRole = UserRole.USER
     profile_img_url: Optional[str] = None
 
 
@@ -36,11 +37,16 @@ class UserUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone_number: Optional[str] = None
-    role: Optional[UserRole] = None
     is_active: Optional[bool] = None
     is_verified: Optional[bool] = None
     profile_img_url: Optional[str] = None
 
+
+class AdminUserUpdate(BaseModel):
+    """Schema for admin updating a user"""
+    role: Optional[UserRole] = None
+    is_active: Optional[bool] = None
+    is_verified: Optional[bool] = None
 
 class UserResponse(BaseModel):
     """

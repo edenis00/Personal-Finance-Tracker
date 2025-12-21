@@ -9,7 +9,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.middleware.security import SecurityHeadersMiddleware
-from app.routes import auth_router, user_router, income_router, expense_router, savings_router
+from app.routes import (
+    auth_router,
+    user_router,
+    income_router,
+    expense_router,
+    savings_router,
+    admin_router
+)
 
 
 app = FastAPI(
@@ -27,6 +34,7 @@ app.include_router(router=user_router, prefix=API_V1_PREFIX)
 app.include_router(router=income_router, prefix=API_V1_PREFIX)
 app.include_router(router=expense_router, prefix=API_V1_PREFIX)
 app.include_router(router=savings_router, prefix=API_V1_PREFIX)
+app.include_router(router=admin_router, prefix=API_V1_PREFIX)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -54,6 +62,6 @@ async def read_root():
     return {"message": "Welcome to the Personal Finance Tracker API"}
 
 
-if __name__  == "__main__":
+if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
