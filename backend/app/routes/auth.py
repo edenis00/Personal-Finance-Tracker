@@ -54,6 +54,7 @@ def login(request: Request, payload: UserLogin, db: Session = Depends(get_db)):
 
 
 @router.post("/signup", response_model=SuccessResponse[UserResponse], status_code=status.HTTP_201_CREATED)
+@limiter.limit("3/minute")  # Rate limiting: 3 requests per minute
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     """Create a new user"""
 
