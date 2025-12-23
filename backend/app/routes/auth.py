@@ -12,6 +12,7 @@ from app.models import User
 from app.schema.user import UserCreate, UserResponse, UserLogin
 from app.dependencies.auth import get_current_active_user
 from app.utils.rate_limits import limiter
+from app.schema.base import SuccessResponse
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ def login(request: Request, payload: UserLogin, db: Session = Depends(get_db)):
     }
 
 
-@router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=SuccessResponse[UserResponse], status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     """Create a new user"""
 
@@ -66,4 +67,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
     new_user = create(db, user)
     logger.info("User %s created successfully", user.email)
-    return new_user
+    return SuccessResponse(
+        message="User created successfully",
+        data=new_user
+    )

@@ -11,9 +11,9 @@ class UserRole(str, Enum):
     """
     Enum for user roles
     """
-    USER = "USER"
-    ADMIN = "ADMIN"
-    MODERATOR = "MODERATOR"
+    USER = "user"
+    ADMIN = "admin"
+    MODERATOR = "moderator"
 
 
 class UserCreate(BaseModel):
