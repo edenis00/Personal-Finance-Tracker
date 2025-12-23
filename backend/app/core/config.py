@@ -45,7 +45,7 @@ class Settings(BaseSettings):
             raise ValueError("Incomplete database configuration")
 
         return (
-            f"postgresql+psycopg2://{self.db_user}:{self.db_password}"
+            f"postgresql+asyncpg://{self.db_user}:{self.db_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
