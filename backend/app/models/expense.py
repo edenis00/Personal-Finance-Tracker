@@ -1,7 +1,7 @@
 """
 Expense model
 """
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, TIMESTAMP
+from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, NUMERIC
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.database import Base
@@ -15,7 +15,7 @@ class Expense(Base):
     __tablename__ = "expenses"
 
     id = Column(Integer, primary_key=True, index=True)
-    amount = Column(Float, nullable=False)
+    amount = Column(NUMERIC(precision=10, scale=2), nullable=False)
     category = Column(String, nullable=False)
     date = Column(TIMESTAMP, server_default=func.now(), nullable=False)
 

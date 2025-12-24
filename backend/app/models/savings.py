@@ -1,7 +1,7 @@
 """
 savings model
 """
-from sqlalchemy import Column, Integer, Float, String, ForeignKey, TIMESTAMP, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, Boolean, NUMERIC
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.database import Base
@@ -15,8 +15,8 @@ class Savings(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    amount = Column(Float, nullable=False)
-    current_amount = Column(Float, nullable=True)
+    amount = Column(NUMERIC(precision=10, scale=2), nullable=False)
+    current_amount = Column(NUMERIC(precision=10, scale=2), nullable=True)
     target_date = Column(TIMESTAMP(timezone=True), nullable=True)
     duration_months = Column(Integer, nullable=True)
     description = Column(String, nullable=True)

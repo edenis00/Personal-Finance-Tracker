@@ -2,7 +2,7 @@
 Income model
 """
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, TIMESTAMP
+from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, NUMERIC
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 
@@ -15,7 +15,7 @@ class Income(Base):
     __tablename__ = "incomes"
 
     id = Column(Integer, primary_key=True, index=True)
-    amount = Column(Float, nullable=False)
+    amount = Column(NUMERIC(precision=10, scale=2), nullable=False)
     source = Column(String, nullable=False)
     date = Column(TIMESTAMP, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
