@@ -11,6 +11,7 @@ class ExpenseCreate(BaseModel):
     """
     amount: float
     category: str
+    date: datetime
 
     @field_validator('amount')
     @classmethod
@@ -39,6 +40,7 @@ class ExpenseUpdate(BaseModel):
     """
     amount: float | None = None
     category: str | None = None
+    date: datetime
 
 
 class ExpenseResponse(BaseModel):

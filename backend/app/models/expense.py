@@ -22,7 +22,7 @@ class Expense(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(TIMESTAMP, onupdate=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True), onupdate=func.now(), nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="expenses")
