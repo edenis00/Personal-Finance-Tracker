@@ -6,9 +6,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 from app.db.database import get_db
 from app.schema.base import SuccessResponse
-from app.models import User, Expense, Income, Savings
 from app.core.permissions import Permission
-from app.dependencies.rbac import require_permissions
+from app.dependencies.rbac import require_permissions\
+from app.models.user import User
+from app.utils.balance import get_user_balance as calculate_user_balance
 
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
@@ -33,27 +34,8 @@ def get_user_balance(
     """
     Get balance of a user
     """
-    total_income =  db.query(func.sum(Income.amount)).filter(
-        Income.user_id == current_user.id
-    ).scalar() or 0
-
-    total_expense = db.query(func.sum(Expense.amount)).filter(
-        Expense.user_id == current_user.id
-    ).scalar() or 0
-
-    total_savings = db.query(func.sum(Savings.amount)).filter(
-        Savings.user_id == current_user.id
-    ).scalar() or 0
-
-    available_balance = total_income - total_expense - total_savings
-    net_balance = total_income - total_expense
+    calculated_balance = calculate_user_balance(current_user, db)
     return SuccessResponse(
-        message="Balance calculated successfully",
-        data={
-            "total_income": float(total_income),
-            "total_expense": float(total_expense),
-            "total_savings": float(total_savings),
-            "balance": float(available_balance),
-            "net_balance": float(net_balance)
-        }
+        message="User balance retrieved successfully",
+        data=calculated_balance
     )

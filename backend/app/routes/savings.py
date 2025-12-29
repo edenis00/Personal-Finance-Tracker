@@ -6,7 +6,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.models import Savings, User
 from app.db.database import get_db
-from app.dependencies.auth import get_current_active_user
 from app.schema.savings import SavingsCreate, SavingsResponse, SavingsUpdate
 from app.schema.base import SuccessResponse
 from app.core.permissions import Permission, Role
@@ -90,7 +89,9 @@ def create(
     Creating new savings for a user
     """
 
-    logging.info("Creating savings for user_id: %s, amount: %s, goal: %s", current_user.id, saving.amount, saving.goal)
+    logging.info("Creating savings for user_id: %s, amount: %s, goal: %s", current_user.id, saving.amount)
+
+
     new_savings = Savings(**saving.model_dump(), user_id=current_user.id)
 
     if check_ownership(new_savings, current_user):

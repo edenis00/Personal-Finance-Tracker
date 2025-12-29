@@ -6,12 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models import Expense, User
-from app.dependencies.auth import get_current_active_user
 from app.utils.expense import calculate_total_expenses, filter_expenses_by_category, check_ownership
 from app.schema.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 from app.schema.base import SuccessResponse
 from app.core.permissions import Permission, Role
 from app.dependencies.rbac import require_permissions as require
+from app.utils.balance import has_sufficient_balance
 
 
 router = APIRouter(
@@ -33,6 +33,13 @@ def create_expense(
     Create a new expense entry
     """
     logging.info("Creating expense for user_id: %s, amount: %s, category: %s", current_user.id, expense.amount, expense.category)
+
+    if not has_sufficient_balance(current_user, db, float(expense.amount)):
+        logging.warning("Insufficient balance for user_id: %s to create expense of amount: %s", current_user.id, expense.amount)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Insufficient balance to create this expense"
+        )
 
     db_expense = Expense(**expense.model_dump(), user_id=current_user.id)
     db.add(db_expense)

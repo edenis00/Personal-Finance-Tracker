@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models import Income, User
 from app.schema.income import IncomeCreate, IncomeResponse, IncomeUpdate
-from app.dependencies.auth import get_current_active_user
 from app.utils.income import check_income_validity, check_ownership
 from app.schema.base import SuccessResponse
 from app.core.permissions import Permission, Role
