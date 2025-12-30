@@ -3,7 +3,7 @@ User Schemas
 """
 from typing import Optional
 from enum import Enum
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 from datetime import datetime
 
 
@@ -27,7 +27,14 @@ class UserCreate(BaseModel):
     phone_number: Optional[str] = None
     role: UserRole = UserRole.USER
     profile_img_url: Optional[str] = None
+    balance: float
 
+    @field_validator("balance")
+    @classmethod
+    def validate_balance(cls, value):
+        if value < 0:
+            raise ValueError("Balance cannot be negative")
+        return value
 
 class UserUpdate(BaseModel):
     """
@@ -40,6 +47,14 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     is_verified: Optional[bool] = None
     profile_img_url: Optional[str] = None
+    balance: float
+
+    @field_validator("balance")
+    @classmethod
+    def validate_balance(cls, value):
+        if value < 0:
+            raise ValueError("Balance cannot be negative")
+        return value
 
 
 class AdminUserUpdate(BaseModel):
@@ -58,6 +73,7 @@ class UserResponse(BaseModel):
     last_name: str
     phone_number: Optional[str] = None
     role: UserRole
+    balance: float
     is_active: bool
     is_verified: bool
     profile_img_url: Optional[str] = None
