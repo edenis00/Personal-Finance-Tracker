@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 def create_expense(
     expense: ExpenseCreate,
     current_user: User = Depends(
-        require(Permission.EXPENSE_WRITE)
+        require([Permission.EXPENSE_WRITE])
     ),
     db: Session = Depends(get_db)):
     """
@@ -34,15 +34,28 @@ def create_expense(
     """
     logging.info("Creating expense for user_id: %s, amount: %s, category: %s", current_user.id, expense.amount, expense.category)
 
-    if not has_sufficient_balance(current_user, db, float(expense.amount)):
-        logging.warning("Insufficient balance for user_id: %s to create expense of amount: %s", current_user.id, expense.amount)
+    user_row = db.query(User).filter(User.id == current_user.id).with_for_update().first()
+    
+    if user_row is None:
+        logging.error("User id: %s not found", current_user.id)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    balance = user_row.balance
+
+    if balance < expense.amount:
+        db.rollback()
+        logging.warning("Insufficient balance for user_id: %s. Available: %s, Required: %s", current_user.id, balance, expense.amount)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Insufficient balance to create this expense"
         )
-
+    
     db_expense = Expense(**expense.model_dump(), user_id=current_user.id)
     db.add(db_expense)
+    user_row.balance -= expense.amount
     db.commit()
     db.refresh(db_expense)
     logger.info("Expense created with id: %s for user_id: %s", db_expense.id, current_user.id)
