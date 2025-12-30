@@ -5,7 +5,7 @@ from collections import defaultdict
 from app.core.permissions import Role
 
 
-def check_ownership(income, current_user):
+def is_authorized(income, current_user):
     """
     Check if the income belongs to the given user
     """

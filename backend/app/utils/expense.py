@@ -18,7 +18,7 @@ def filter_expenses_by_category(expenses, category):
     return [expense for expense in expenses if expense.category == category]
 
 
-def check_ownership(expense, current_user) -> bool:
+def is_authorized(expense, current_user) -> bool:
     """
     Check if the expense belongs to the given user
     """

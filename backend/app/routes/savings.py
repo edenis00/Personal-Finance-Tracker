@@ -10,7 +10,7 @@ from app.schema.savings import SavingsCreate, SavingsResponse, SavingsUpdate
 from app.schema.base import SuccessResponse
 from app.core.permissions import Permission, Role
 from app.dependencies.rbac import require_permissions as require
-from app.utils.savings import check_ownership
+from app.utils.savings import is_authorized
 
 
 router = APIRouter(prefix="/savings", tags=["Savings"])
@@ -36,7 +36,7 @@ def read_saving(
         logging.warning("Savings id: %s not found for user_id: %s", savings_id, current_user.id)
         raise HTTPException(status_code=404, detail="Savings not found")
     
-    if check_ownership(savings, current_user):
+    if is_authorized(savings, current_user):
         logging.warning("Unauthorized access attempt to savings id: %s by user_id: %s", savings_id, current_user.id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -94,7 +94,7 @@ def create(
 
     new_savings = Savings(**saving.model_dump(), user_id=current_user.id)
 
-    if check_ownership(new_savings, current_user):
+    if is_authorized(new_savings, current_user):
         logging.warning("Unauthorized create attempt by user_id: %s", current_user.id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -131,7 +131,7 @@ def update(
         logging.warning("Savings id: %s not found for user_id: %s", savings_id, current_user.id)
         raise HTTPException(status_code=404, detail="Savings not found")
     
-    if check_ownership(existing_savings, current_user):
+    if is_authorized(existing_savings, current_user):
         logging.warning("Unauthorized update attempt to savings id: %s by user_id: %s", savings_id, current_user.id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -170,7 +170,7 @@ def delete(
         logging.warning("Savings id: %s not found for user_id: %s", savings_id, current_user.id)
         raise HTTPException(status_code=404, detail="Savings not found")
 
-    if check_ownership(existing_savings, current_user):
+    if is_authorized(existing_savings, current_user):
         logging.warning("Unauthorized delete attempt to savings id: %s by user_id: %s", savings_id, current_user.id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -6,7 +6,7 @@ from app.core.permissions import Role
 
 
 
-def check_ownership(savings, current_user) -> bool:
+def is_authorized(savings, current_user) -> bool:
     """
     Check if the savings entry belongs to the user
 

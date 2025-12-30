@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models import Income, User
 from app.schema.income import IncomeCreate, IncomeResponse, IncomeUpdate
-from app.utils.income import check_income_validity, check_ownership
+from app.utils.income import check_income_validity, is_authorized
 from app.schema.base import SuccessResponse
 from app.core.permissions import Permission, Role
 from app.dependencies.rbac import require_permissions as require
@@ -73,7 +73,7 @@ def read_income(
             detail="Income not found"
         )
     
-    if not check_ownership(check_income_exists, current_user):
+    if not is_authorized(check_income_exists, current_user):
         logging.warning("Unauthorized access attempt to income id: %s by user_id: %s", income_id, current_user.id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -136,7 +136,7 @@ def update_income(
         logging.warning("Income id: %s not found for user_id: %s", income_id, current_user.id)
         raise HTTPException(status_code=404, detail="Income not found")
     
-    if not check_ownership(check_income_exists, current_user):
+    if not is_authorized(check_income_exists, current_user):
         logging.warning("Unauthorized update attempt to income id: %s by user_id: %s", income_id, current_user.id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -180,7 +180,7 @@ def delete_income(
         logging.warning("Income id: %s not found for user_id: %s", income_id, current_user.id)
         raise HTTPException(status_code=404, detail="Income not found")
 
-    if not check_ownership(check_income_exists, current_user):
+    if not is_authorized(check_income_exists, current_user):
         logging.warning("Unauthorized delete attempt to income id: %s by user_id: %s", income_id, current_user.id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

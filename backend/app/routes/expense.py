@@ -7,12 +7,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models import Expense, User
-from app.utils.expense import calculate_total_expenses, filter_expenses_by_category, check_ownership
+from app.utils.expense import calculate_total_expenses, filter_expenses_by_category, is_authorized
 from app.schema.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 from app.schema.base import SuccessResponse
 from app.core.permissions import Permission, Role
 from app.dependencies.rbac import require_permissions as require
-from app.utils.balance import has_sufficient_balance
+
 
 
 router = APIRouter(
@@ -167,14 +167,7 @@ def read_expense(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Expense not found"
         )
-
-    if not check_ownership(expense, current_user):
-        logging.warning("Unauthorized access attempt to expense id: %s by user_id: %s", expense_id, current_user.id)
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this expense"
-        )
-
+    
     logging.info("Expense id: %s found for user_id: %s", expense_id, current_user.id)
     return SuccessResponse(
         message="Expense retrieved successfully",
@@ -201,7 +194,7 @@ def update_expense(
         logging.warning("Expense id: %s not found for user_id: %s", expense_id, current_user.id)
         raise HTTPException(status_code=404, detail="Expense not found")
     
-    if not check_ownership(expense_exists, current_user):
+    if not is_authorized(expense_exists, current_user):
         logging.warning("Unauthorized update attempt to expense id: %s by user_id: %s", expense_id, current_user.id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
