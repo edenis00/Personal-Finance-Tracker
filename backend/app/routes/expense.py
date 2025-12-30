@@ -2,6 +2,7 @@
 Expense routes 
 """
 import logging
+from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
@@ -55,7 +56,7 @@ def create_expense(
     
     db_expense = Expense(**expense.model_dump(), user_id=current_user.id)
     db.add(db_expense)
-    user_row.balance -= expense.amount
+    user_row.balance -= Decimal(expense.amount)
     db.commit()
     db.refresh(db_expense)
     logger.info("Expense created with id: %s for user_id: %s", db_expense.id, current_user.id)

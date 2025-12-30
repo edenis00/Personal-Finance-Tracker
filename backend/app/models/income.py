@@ -4,6 +4,7 @@ Income model
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, NUMERIC
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from app.db.database import Base
 
 
@@ -19,8 +20,8 @@ class Income(Base):
     source = Column(String, nullable=False)
     date = Column(TIMESTAMP, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    created_at = Column(TIMESTAMP, default=datetime.utcnow)
-    updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
     # Relationships
     user = relationship("User", back_populates="incomes")
