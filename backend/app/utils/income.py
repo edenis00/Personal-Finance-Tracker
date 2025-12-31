@@ -12,18 +12,6 @@ def is_authorized(income, current_user):
     return income.user_id != current_user.id and current_user.role != Role.ADMIN.value
 
 
-
-def check_income_validity(income):
-    """
-    Check if the income entry is valid
-    """
-    if income.amount <= 0:
-        return False
-    if not income.source:
-        return False
-    return True
-
-
 def calculate_total_income(incomes):
     """
     Calculate the total income from a list of income entries

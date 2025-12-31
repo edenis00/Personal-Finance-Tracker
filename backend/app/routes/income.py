@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models import Income, User
 from app.schema.income import IncomeCreate, IncomeResponse, IncomeUpdate
-from app.utils.income import check_income_validity, is_authorized
+from app.utils.income import is_authorized
 from app.schema.base import SuccessResponse
 from app.core.permissions import Permission, Role
 from app.dependencies.rbac import require_permissions as require
@@ -32,16 +32,12 @@ def create_income(
     Create a new income entry
     """
     logging.info("Creating income for user_id: %s, amount: %s, source: %s", current_user.id, income.amount, income.source)
+
+    user_row = db.query(User).filter(User.id == current_user.id).with_for_update().first()
+    
     new_income = Income(**income.model_dump(), user_id=current_user.id)
-
-    if not check_income_validity(new_income):
-        logging.warning("Invalid income data for user_id: %s", current_user.id)
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid income data"
-        )
-
     db.add(new_income)
+    user_row.balance += income.amount
     db.commit()
     db.refresh(new_income)
 
