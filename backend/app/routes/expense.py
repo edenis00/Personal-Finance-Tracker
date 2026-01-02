@@ -7,11 +7,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models import Expense, User
-from app.utils.expense import calculate_total_expenses, filter_expenses_by_category, is_authorized
 from app.schema.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 from app.schema.base import SuccessResponse
 from app.core.permissions import Permission, Role
 from app.dependencies.rbac import require_permissions as require
+from app.utils.expense import (
+    calculate_total_expenses,
+    filter_expenses_by_category,
+    is_authorized,
+    create_expense_service,
+    read_all_expense_service,
+    InsufficentBalanceError,
+    UserNotFoundError
+)
 
 
 
@@ -35,35 +43,23 @@ def create_expense(
     """
     logging.info("Creating expense for user_id: %s, amount: %s, category: %s", current_user.id, expense.amount, expense.category)
 
-    user_row = db.query(User).filter(User.id == current_user.id).with_for_update().first()
-    
-    if user_row is None:
-        logging.error("User id: %s not found", current_user.id)
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-    
-    balance = user_row.balance
-
-    if balance < expense.amount:
-        db.rollback()
-        logging.warning("Insufficient balance for user_id: %s. Available: %s, Required: %s", current_user.id, balance, expense.amount)
+    try:
+        new_expense = create_expense_service(expense, current_user.id, db)
+    except InsufficentBalanceError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Insufficient balance to create this expense"
+            detail=str(e)
+        )
+    except UserNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
         )
     
-    db_expense = Expense(**expense.model_dump(), user_id=current_user.id)
-    db.add(db_expense)
-    user_row.balance -= Decimal(expense.amount)
-    db.commit()
-    db.refresh(db_expense)
-    logger.info("Expense created with id: %s for user_id: %s", db_expense.id, current_user.id)
-
+    logger.info("Expense created with id: %s for user_id: %s", new_expense.id, current_user.id)
     return SuccessResponse(
         message="Expense created successfully",
-        data=db_expense
+        data=new_expense
     )
 
 
@@ -79,14 +75,7 @@ def read_expenses(
     """
     Retrieve all expense entries for the current user
     """
-    if current_user.role == Role.ADMIN.value:
-        # Admin can see all expenses
-        logging.info("Admin user_id: %s fetching all expenses", current_user.id)
-        expenses = db.query(Expense).offset(skip).limit(limit).all()
-    else:
-        # Regular user can see only their own expenses
-        logging.info("Fetching expenses for user_id: %s", current_user.id)
-        expenses = db.query(Expense).filter(Expense.user_id == current_user.id).offset(skip).limit(limit).all()
+    expenses = read_all_expense_service(skip, limit, current_user, db)
 
     logging.info("Found %d expenses for user_id: %s", len(expenses), current_user.id)   
     return SuccessResponse(
