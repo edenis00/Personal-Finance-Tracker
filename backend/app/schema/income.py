@@ -4,13 +4,14 @@ Income schema
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, field_validator
+from decimal import Decimal
 
 
 class IncomeCreate(BaseModel):
     """
     Schema for creating an income entry
     """
-    amount: float
+    amount: Decimal
     source: str
     date: Optional[datetime] = None
 
@@ -29,7 +30,7 @@ class IncomeUpdate(BaseModel):
     """
     Schema for updating an income entry
     """
-    amount: Optional[float] = None
+    amount: Optional[Decimal] = None
     source: Optional[str] = None
     date: Optional[datetime] = None
 

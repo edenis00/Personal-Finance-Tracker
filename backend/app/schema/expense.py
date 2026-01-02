@@ -3,13 +3,14 @@ Expense schema
 """
 from pydantic import BaseModel, ConfigDict, field_validator
 from datetime import datetime
+from decimal import Decimal
 
 
 class ExpenseCreate(BaseModel):
     """
     Schema for creating an expense entry
     """
-    amount: float
+    amount: Decimal
     category: str
     date: datetime
 
@@ -38,7 +39,7 @@ class ExpenseUpdate(BaseModel):
     """
     Schema for updating an expense entry
     """
-    amount: float | None = None
+    amount: Decimal | None = None
     category: str | None = None
     date: datetime
 
