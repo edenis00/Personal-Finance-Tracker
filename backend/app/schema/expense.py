@@ -42,6 +42,26 @@ class ExpenseUpdate(BaseModel):
     amount: Decimal | None = None
     category: str | None = None
     date: datetime
+    
+    @field_validator('amount')
+    @classmethod
+    def amount_is_positive(cls, value):
+        """
+        Validate that the amount is positive
+        """
+        if value <= 0:
+            raise ValueError("Amount must be positive")
+        return value
+
+    @field_validator('category')
+    @classmethod
+    def category_not_empty(cls, value):
+        """
+        Validate that the category is not empty
+        """
+        if not value or value.strip() == "":
+            raise ValueError("Category must not be empty")
+        return value
 
 
 class ExpenseResponse(BaseModel):

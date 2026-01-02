@@ -1,8 +1,8 @@
 """
-Expense routes 
+Expense routes
 """
+
 import logging
-from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
@@ -17,10 +17,12 @@ from app.utils.expense import (
     is_authorized,
     create_expense_service,
     read_all_expense_service,
+    read_expense_service,
+    update_expense_service,
     InsufficentBalanceError,
-    UserNotFoundError
+    UserNotFoundError,
+    ExpenseNotFoundError,
 )
-
 
 
 router = APIRouter(
@@ -31,65 +33,59 @@ router = APIRouter(
 logger = logging.getLogger(__name__)
 
 
-@router.post("/", response_model=SuccessResponse[ExpenseResponse], status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    response_model=SuccessResponse[ExpenseResponse],
+    status_code=status.HTTP_201_CREATED,
+)
 def create_expense(
     expense: ExpenseCreate,
-    current_user: User = Depends(
-        require([Permission.EXPENSE_WRITE])
-    ),
-    db: Session = Depends(get_db)):
+    current_user: User = Depends(require([Permission.EXPENSE_WRITE])),
+    db: Session = Depends(get_db),
+):
     """
     Create a new expense entry
     """
-    logging.info("Creating expense for user_id: %s, amount: %s, category: %s", current_user.id, expense.amount, expense.category)
+    logging.info(
+        "Creating expense for user_id: %s, amount: %s, category: %s",
+        current_user.id,
+        expense.amount,
+        expense.category,
+    )
 
     try:
         new_expense = create_expense_service(expense, current_user.id, db)
     except InsufficentBalanceError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except UserNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
-        )
-    
-    logger.info("Expense created with id: %s for user_id: %s", new_expense.id, current_user.id)
-    return SuccessResponse(
-        message="Expense created successfully",
-        data=new_expense
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+    logger.info(
+        "Expense created with id: %s for user_id: %s", new_expense.id, current_user.id
     )
+    return SuccessResponse(message="Expense created successfully", data=new_expense)
 
 
 @router.get("/", response_model=SuccessResponse[list[ExpenseResponse]])
 def read_expenses(
     skip: int = 0,
     limit: int = 100,
-    current_user: User = Depends(
-        require([Permission.EXPENSE_READ])
-    ),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(require([Permission.EXPENSE_READ])),
+    db: Session = Depends(get_db),
 ):
     """
     Retrieve all expense entries for the current user
     """
-    expenses = read_all_expense_service(skip, limit, current_user, db)
+    expenses = read_all_expense_service(current_user, db, skip, limit)
 
-    logging.info("Found %d expenses for user_id: %s", len(expenses), current_user.id)   
-    return SuccessResponse(
-        message="Expenses retrieved successfully",
-        data=expenses
-    )
+    logging.info("Found %d expenses for user_id: %s", len(expenses), current_user.id)
+    return SuccessResponse(message="Expenses retrieved successfully", data=expenses)
 
 
 @router.get("/total")
 def get_total_expenses(
-    current_user: User = Depends(
-        require([Permission.EXPENSE_READ])
-    ),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(require([Permission.EXPENSE_READ])),
+    db: Session = Depends(get_db),
 ):
     """
     Calculate total expenses for a user
@@ -107,110 +103,113 @@ def get_total_expenses(
     return {"user_id": current_user.id, "total_expenses": total}
 
 
-@router.get("/category/{category}", response_model=SuccessResponse[list[ExpenseResponse]])
+@router.get(
+    "/category/{category}", response_model=SuccessResponse[list[ExpenseResponse]]
+)
 def get_expenses_by_category(
     category: str,
-    current_user: User = Depends(
-        require([Permission.EXPENSE_READ])
-    ),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(require([Permission.EXPENSE_READ])),
+    db: Session = Depends(get_db),
 ):
     """
     Retrieve expenses for a user filtered by category
     """
-    logging.info("Fetching expenses for user_id: %s in category: %s", current_user.id, category)
+    logging.info(
+        "Fetching expenses for user_id: %s in category: %s", current_user.id, category
+    )
     expenses = db.query(Expense).filter(Expense.user_id == current_user.id).all()
 
     if not expenses:
         logging.warning("No expenses found for user_id: %s", current_user.id)
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Expenses not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Expenses not found"
         )
 
     filtered_expenses = filter_expenses_by_category(expenses, category)
-    logging.info("Found %d expenses for user_id: %s in category: %s", len(filtered_expenses), current_user.id, category)
+    logging.info(
+        "Found %d expenses for user_id: %s in category: %s",
+        len(filtered_expenses),
+        current_user.id,
+        category,
+    )
     return SuccessResponse(
-        message="Expenses retrieved successfully",
-        data=filtered_expenses
+        message="Expenses retrieved successfully", data=filtered_expenses
     )
 
 
 @router.get("/{expense_id}", response_model=SuccessResponse[ExpenseResponse])
 def read_expense(
     expense_id: int,
-    current_user: User = Depends(
-        require([Permission.EXPENSE_READ])
-    ),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(require([Permission.EXPENSE_READ])),
+    db: Session = Depends(get_db),
 ):
     """
     Retrieve an expense entry by ID
     """
     logging.info("Fetching expense id: %s for user_id: %s", expense_id, current_user.id)
-    expense = db.query(Expense).filter(Expense.id == expense_id).first()
+    try:
+        expense = read_expense_service(expense_id, db)
+    except ExpenseNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
     if not expense:
-        logging.warning("Expense id: %s not found for user_id: %s", expense_id, current_user.id)
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Expense not found"
+        logging.warning(
+            "Expense id: %s not found for user_id: %s", expense_id, current_user.id
         )
-    
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found"
+        )
+
     logging.info("Expense id: %s found for user_id: %s", expense_id, current_user.id)
-    return SuccessResponse(
-        message="Expense retrieved successfully",
-        data=expense
-    )
+    return SuccessResponse(message="Expense retrieved successfully", data=expense)
 
 
 @router.put("/{expense_id}", response_model=SuccessResponse[ExpenseResponse])
 def update_expense(
     expense_id: int,
-    expense: ExpenseUpdate,
-    current_user: User = Depends(
-        require([Permission.EXPENSE_WRITE])
-    ),
-    db: Session = Depends(get_db)
+    expense_update: ExpenseUpdate,
+    current_user: User = Depends(require([Permission.EXPENSE_WRITE])),
+    db: Session = Depends(get_db),
 ):
     """
     Update an existing expense entry
     """
     logging.info("Updating expense id: %s for user_id: %s", expense_id, current_user.id)
-    expense_exists = db.query(Expense).filter(Expense.id == expense_id).first()
 
-    if expense_exists is None:
-        logging.warning("Expense id: %s not found for user_id: %s", expense_id, current_user.id)
-        raise HTTPException(status_code=404, detail="Expense not found")
+    try:
+        updated_expense = update_expense_service(
+            expense_id, expense_update, current_user, db
+        )
+    except InsufficentBalanceError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     
-    if not is_authorized(expense_exists, current_user):
-        logging.warning("Unauthorized update attempt to expense id: %s by user_id: %s", expense_id, current_user.id)
+    except ExpenseNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    
+    except ValueError as e:
+        if "Unauthorized" in str(e):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    
+    except Exception as e:
+        logging.error("Unexpected error updating expense: %s", e)
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this expense"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
         )
 
-    db_expense = expense.model_dump(exclude_unset=True)
-
-    for key, value in db_expense.items():
-        setattr(expense_exists, key, value)
-
-    db.commit()
-    db.refresh(expense_exists)
-
     logging.info("Expense id: %s updated for user_id: %s", expense_id, current_user.id)
-    return SuccessResponse(
-        message="Expense updated successfully",
-        data=expense_exists
-    )
+    return SuccessResponse(message="Expense updated successfully", data=updated_expense)
+
 
 @router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_expense(
     expense_id: int,
-    current_user: User = Depends(
-        require([Permission.EXPENSE_DELETE])
-    ),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(require([Permission.EXPENSE_DELETE])),
+    db: Session = Depends(get_db),
 ):
     """
     Delete an expense entry
@@ -220,16 +219,22 @@ def delete_expense(
     db_expense = db.query(Expense).filter(Expense.id == expense_id).first()
 
     if db_expense is None:
-        logging.warning("Expense id: %s not found for user_id: %s", expense_id, current_user.id)
+        logging.warning(
+            "Expense id: %s not found for user_id: %s", expense_id, current_user.id
+        )
         raise HTTPException(status_code=404, detail="Expense not found")
 
-    if not check_ownership(db_expense, current_user):
-        logging.warning("Unauthorized delete attempt to expense id: %s by user_id: %s", expense_id, current_user.id)
+    if not is_authorized(db_expense, current_user):
+        logging.warning(
+            "Unauthorized delete attempt to expense id: %s by user_id: %s",
+            expense_id,
+            current_user.id,
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to delete this expense"
+            detail="Not authorized to delete this expense",
         )
-    
+
     db.delete(db_expense)
     db.commit()
 

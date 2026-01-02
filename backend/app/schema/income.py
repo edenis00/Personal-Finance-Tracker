@@ -34,6 +34,15 @@ class IncomeUpdate(BaseModel):
     source: Optional[str] = None
     date: Optional[datetime] = None
 
+    @field_validator('amount')
+    @classmethod
+    def amount_is_positive(cls, value):
+        """
+        Validate that the amount is positive
+        """
+        if value <= 0:
+            raise ValueError("Amount must be positive")
+        return value
 
 class IncomeResponse(BaseModel):
     """
