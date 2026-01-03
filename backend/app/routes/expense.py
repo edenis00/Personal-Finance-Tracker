@@ -9,16 +9,16 @@ from app.db.database import get_db
 from app.models import Expense, User
 from app.schema.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 from app.schema.base import SuccessResponse
-from app.core.permissions import Permission, Role
+from app.core.permissions import Permission
 from app.dependencies.rbac import require_permissions as require
 from app.utils.expense import (
     calculate_total_expenses,
     filter_expenses_by_category,
-    is_authorized,
     create_expense_service,
     read_all_expense_service,
     read_expense_service,
     update_expense_service,
+    delete_expense_service,
     InsufficientBalanceError,
     UserNotFoundError,
     ExpenseNotFoundError,
@@ -59,6 +59,12 @@ def create_expense(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except UserNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        logging.error("Unexpected error updating expense: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
 
     logger.info(
         "Expense created with id: %s for user_id: %s", new_expense.id, current_user.id
@@ -150,14 +156,15 @@ def read_expense(
     try:
         expense = read_expense_service(expense_id, db)
     except ExpenseNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-
-    if not expense:
         logging.warning(
             "Expense id: %s not found for user_id: %s", expense_id, current_user.id
         )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        logging.error("Unexpected error updating expense: %s", e)
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
         )
 
     logging.info("Expense id: %s found for user_id: %s", expense_id, current_user.id)
@@ -182,18 +189,18 @@ def update_expense(
         )
     except InsufficientBalanceError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    
+
     except ExpenseNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    
+
     except UserNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    
+
     except ValueError as e:
         if "Unauthorized" in str(e):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    
+
     except Exception as e:
         logging.error("Unexpected error updating expense: %s", e)
         raise HTTPException(
@@ -216,27 +223,28 @@ def delete_expense(
     """
 
     logging.info("Deleting expense id: %s for user_id: %s", expense_id, current_user.id)
-    db_expense = db.query(Expense).filter(Expense.id == expense_id).first()
+    try:
+        expense = delete_expense_service(expense_id, current_user, db)
+    except InsufficientBalanceError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-    if db_expense is None:
-        logging.warning(
-            "Expense id: %s not found for user_id: %s", expense_id, current_user.id
-        )
-        raise HTTPException(status_code=404, detail="Expense not found")
+    except ExpenseNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
-    if not is_authorized(db_expense, current_user):
-        logging.warning(
-            "Unauthorized delete attempt to expense id: %s by user_id: %s",
-            expense_id,
-            current_user.id,
-        )
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+    except ValueError as e:
+        if "Unauthorized" in str(e):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    except Exception as e:
+        logging.error("Unexpected error updating expense: %s", e)
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to delete this expense",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
         )
-
-    db.delete(db_expense)
-    db.commit()
 
     logging.info("Expense id: %s deleted for user_id: %s", expense_id, current_user.id)
     return None

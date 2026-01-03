@@ -25,9 +25,7 @@ class UserNotFoundError(Exception):
     pass
 
 
-def create_expense_service(
-    expense: ExpenseCreate, current_user_id: int, db: Session
-):
+def create_expense_service(expense: ExpenseCreate, current_user_id: int, db: Session):
     """
     Creating a expense service
     """
@@ -35,10 +33,10 @@ def create_expense_service(
         user = (
             db.query(User).filter(User.id == current_user_id).with_for_update().first()
         )
-        
+
         if not user:
             raise UserNotFoundError("User not found")
-        
+
         if user.balance < expense.amount:
             raise InsufficientBalanceError("Insufficent Amount")
 
@@ -50,7 +48,7 @@ def create_expense_service(
         return expense
     except Exception as e:
         db.rollback()
-        logging.error("Failed to update expense %s: %s", expense.id, str(e))
+        logging.error("Failed to create expense %s: %s", expense.id, str(e))
         raise e
 
 
@@ -100,7 +98,7 @@ def update_expense_service(
             db.query(Expense).filter(Expense.id == expense_id).with_for_update().first()
         )
         if not expense:
-            raise ExpenseNotFoundError("Expense not found")
+            raise ExpenseNotFoundError("Expense %s not found", expense.id)
 
         if not is_authorized(expense, current_user):
             raise ValueError("Unauthorized to update this expense")
@@ -117,15 +115,18 @@ def update_expense_service(
         )
         difference = new_amount - old_amount
 
-        if difference > 0 and user.balance < difference:
-            raise InsufficientBalanceError("Insufficient balance")
+        if difference > 0:
+            if user.balance < difference:
+                raise InsufficientBalanceError(
+                    "Insufficient balance. For %s this balance: %s",
+                    expense.amount,
+                    user.balance,
+                )
 
         if expense.amount is not None:
             expense.amount = new_amount
-            
         if expense_update.category is not None:
             expense.category = expense_update.category
-            
         if expense.date is not None:
             expense.date = expense_update.date
 
@@ -136,8 +137,49 @@ def update_expense_service(
         return expense
     except Exception as e:
         db.rollback()
+        logger.error("Failed to update expense %s due to: %s", expense_id, str(e))
         raise e
 
+
+def is_authorized(expense, current_user) -> bool:
+    """
+    Check if the expense belongs to the given user or user is admin
+    """
+    return expense.user_id == current_user.id or current_user.role == Role.ADMIN.value
+
+
+def delete_expense_service(expense_id: int, current_user: User, db: Session):
+    """
+    Docstring for delete_expense_service
+    """
+    try:
+        user = db.query(User).filter(User.id == current_user.id).with_for_update().first()
+        if not user:
+            raise UserNotFoundError("User not found")
+        
+        
+        expense = db.query(Expense).filter(Expense.id == expense_id).with_for_update().first()
+        if not expense:
+            raise ExpenseNotFoundError("Expense %s not found", expense_id)
+        
+        if not is_authorized(expense, current_user)
+            logging.warning(
+                "Unauthorized delete attempt to expense id: %s by user_id: %s",
+                expense_id,
+                current_user.id,
+            )
+            raise ValueError("Unauthorized to delete this expense")
+        
+        db.delete(expense)
+        
+        #refund balance
+        user.balance += expense.amount
+        db.commit()
+        return expense
+    except Exception as e:
+        db.rollback()
+        logger.error("Failed to delete expense %s due to: %s", expense_id, str(e))
+        raise e
 
 def calculate_total_expenses(expenses):
     """
@@ -152,9 +194,3 @@ def filter_expenses_by_category(expenses, category):
     """
     return [expense for expense in expenses if expense.category == category]
 
-
-def is_authorized(expense, current_user) -> bool:
-    """
-    Check if the expense belongs to the given user or user is admin
-    """
-    return expense.user_id == current_user.id or current_user.role == Role.ADMIN.value
