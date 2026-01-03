@@ -19,7 +19,7 @@ from app.utils.expense import (
     read_all_expense_service,
     read_expense_service,
     update_expense_service,
-    InsufficentBalanceError,
+    InsufficientBalanceError,
     UserNotFoundError,
     ExpenseNotFoundError,
 )
@@ -55,7 +55,7 @@ def create_expense(
 
     try:
         new_expense = create_expense_service(expense, current_user.id, db)
-    except InsufficentBalanceError as e:
+    except InsufficientBalanceError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except UserNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -180,7 +180,7 @@ def update_expense(
         updated_expense = update_expense_service(
             expense_id, expense_update, current_user, db
         )
-    except InsufficentBalanceError as e:
+    except InsufficientBalanceError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     
     except ExpenseNotFoundError as e:

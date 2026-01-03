@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class InsufficentBalanceError(Exception):
+class InsufficientBalanceError(Exception):
     pass
 
 
@@ -27,7 +27,7 @@ class UserNotFoundError(Exception):
 
 def create_expense_service(
     expense: ExpenseCreate, current_user_id: int, db: Session
-) -> Expense:
+):
     """
     Creating a expense service
     """
@@ -35,8 +35,12 @@ def create_expense_service(
         user = (
             db.query(User).filter(User.id == current_user_id).with_for_update().first()
         )
+        
+        if not user:
+            raise UserNotFoundError("User not found")
+        
         if user.balance < expense.amount:
-            raise InsufficentBalanceError("Insufficent Amount")
+            raise InsufficientBalanceError("Insufficent Amount")
 
         expense = Expense(**expense.model_dump(), user_id=current_user_id)
         user.balance -= expense.amount
@@ -44,8 +48,10 @@ def create_expense_service(
         db.commit()
         db.refresh(expense)
         return expense
-    except NoResultFound:
-        raise UserNotFoundError("User not found")
+    except Exception as e:
+        db.rollback()
+        logging.error("Failed to update expense %s: %s", expense.id, str(e))
+        raise e
 
 
 def read_all_expense_service(
@@ -84,39 +90,46 @@ def read_expense_service(
 
 
 def update_expense_service(
-    expense_id: int,
-    expense_update: ExpenseUpdate,
-    current_user: User,
-    db: Session
+    expense_id: int, expense_update: ExpenseUpdate, current_user: User, db: Session
 ) -> Expense:
     """
     Update an existing expense
     """
     try:
-        expense = db.query(Expense).filter(Expense.id == expense_id).with_for_update().first()
+        expense = (
+            db.query(Expense).filter(Expense.id == expense_id).with_for_update().first()
+        )
         if not expense:
             raise ExpenseNotFoundError("Expense not found")
 
         if not is_authorized(expense, current_user):
             raise ValueError("Unauthorized to update this expense")
 
-        user = (db.query(User).filter(User.id == current_user.id).with_for_update().first())
+        user = (
+            db.query(User).filter(User.id == current_user.id).with_for_update().first()
+        )
         if not user:
             raise UserNotFoundError("User not found")
 
         old_amount = expense.amount
-        new_amount = expense_update.amount if expense_update.amount is not None else old_amount
-        diff = new_amount - old_amount
+        new_amount = (
+            expense_update.amount if expense_update.amount is not None else old_amount
+        )
+        difference = new_amount - old_amount
 
-        if diff > 0 and user.balance < diff:
-            raise InsufficentBalanceError("Insufficient balance")
+        if difference > 0 and user.balance < difference:
+            raise InsufficientBalanceError("Insufficient balance")
 
-        expense.amount = new_amount
+        if expense.amount is not None:
+            expense.amount = new_amount
+            
         if expense_update.category is not None:
             expense.category = expense_update.category
-        expense.date = expense_update.date
-        
-        user.balance -= diff
+            
+        if expense.date is not None:
+            expense.date = expense_update.date
+
+        user.balance -= difference
 
         db.commit()
         db.refresh(expense)
@@ -125,7 +138,7 @@ def update_expense_service(
         db.rollback()
         raise e
 
-    
+
 def calculate_total_expenses(expenses):
     """
     Calculate the total amount of expenses from a list of expense entries

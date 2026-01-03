@@ -9,7 +9,7 @@ def is_authorized(income, current_user):
     """
     Check if the income belongs to the given user
     """
-    return income.user_id != current_user.id and current_user.role != Role.ADMIN.value
+    return income.user_id == current_user.id and current_user.role == Role.ADMIN.value
 
 
 def calculate_total_income(incomes):

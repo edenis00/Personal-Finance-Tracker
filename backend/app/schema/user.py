@@ -5,6 +5,7 @@ from typing import Optional
 from enum import Enum
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 from datetime import datetime
+from decimal import Decimal
 
 
 class UserRole(str, Enum):
@@ -73,7 +74,7 @@ class UserResponse(BaseModel):
     last_name: str
     phone_number: Optional[str] = None
     role: UserRole
-    balance: float
+    balance: Decimal
     is_active: bool
     is_verified: bool
     profile_img_url: Optional[str] = None

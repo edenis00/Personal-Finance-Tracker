@@ -49,7 +49,7 @@ class IncomeResponse(BaseModel):
     Schema for outputting an income entry
     """
     id: int
-    amount: float
+    amount: Decimal
     source: str
     date: datetime
     user_id: int

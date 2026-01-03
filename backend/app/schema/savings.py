@@ -64,8 +64,8 @@ class SavingsResponse(BaseModel):
     Schema for response
     """
     id: int
-    amount: float
-    current_amount: float
+    amount: Decimal
+    current_amount: Decimal
     target_date: Optional[datetime] = None
     duration_months: Optional[int] = None
     description: Optional[str] = None

@@ -41,7 +41,7 @@ class ExpenseUpdate(BaseModel):
     """
     amount: Decimal | None = None
     category: str | None = None
-    date: datetime
+    date: datetime | None = None
     
     @field_validator('amount')
     @classmethod
@@ -69,7 +69,7 @@ class ExpenseResponse(BaseModel):
     Schema for outputting an expense entry
     """
     id: int
-    amount: float
+    amount: Decimal
     category: str
     date: datetime
     user_id: int
