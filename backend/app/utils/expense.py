@@ -162,7 +162,7 @@ def delete_expense_service(expense_id: int, current_user: User, db: Session):
         if not expense:
             raise ExpenseNotFoundError("Expense %s not found", expense_id)
         
-        if not is_authorized(expense, current_user)
+        if not is_authorized(expense, current_user):
             logging.warning(
                 "Unauthorized delete attempt to expense id: %s by user_id: %s",
                 expense_id,
