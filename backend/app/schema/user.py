@@ -28,7 +28,7 @@ class UserCreate(BaseModel):
     phone_number: Optional[str] = None
     role: UserRole = UserRole.USER
     profile_img_url: Optional[str] = None
-    balance: float
+    balance: Decimal
 
     @field_validator("balance")
     @classmethod
@@ -48,7 +48,7 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     is_verified: Optional[bool] = None
     profile_img_url: Optional[str] = None
-    balance: float
+    balance: Decimal
 
     @field_validator("balance")
     @classmethod

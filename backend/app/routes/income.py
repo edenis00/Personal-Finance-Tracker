@@ -7,10 +7,19 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models import Income, User
 from app.schema.income import IncomeCreate, IncomeResponse, IncomeUpdate
-from app.utils.income import is_authorized
 from app.schema.base import SuccessResponse
 from app.core.permissions import Permission, Role
 from app.dependencies.rbac import require_permissions as require
+from app.utils.income import (
+    create_income_service,
+    fetch_all_income_service,
+    fetch_income_service,
+    update_income_service,
+    delete_income_service,
+    IncomeNotFoundError,
+    UserNotFoundError
+)
+
 
 
 router = APIRouter(
@@ -32,54 +41,21 @@ def create_income(
     Create a new income entry
     """
     logging.info("Creating income for user_id: %s, amount: %s, source: %s", current_user.id, income.amount, income.source)
-
-    user_row = db.query(User).filter(User.id == current_user.id).with_for_update().first()
-    
-    new_income = Income(**income.model_dump(), user_id=current_user.id)
-    db.add(new_income)
-    user_row.balance += income.amount
-    db.commit()
-    db.refresh(new_income)
+    try:
+        new_income = create_income_service(income, current_user, db)
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        logging.error("Unexpected error updating income: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
 
     logging.info("Income created with id: %s for user_id: %s", new_income.id, current_user.id)
     return SuccessResponse(
         message="Income created successfully",
         data=new_income
-    )
-
-
-@router.get("/{income_id}", response_model=SuccessResponse[IncomeResponse])
-def read_income(
-    income_id: int,
-    current_user: User = Depends(
-        require([Permission.INCOME_READ])
-    ),
-    db: Session = Depends(get_db)
-):
-    """
-    Retrieve an income entry by ID
-    """
-    logging.info("Fetching income id: %s for user_id: %s", income_id, current_user.id)
-    check_income_exists = db.query(Income).filter(Income.id == income_id).first()
-
-    if not check_income_exists:
-        logging.warning("Income id: %s not found for user_id: %s", income_id, current_user.id)
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Income not found"
-        )
-    
-    if not is_authorized(check_income_exists, current_user):
-        logging.warning("Unauthorized access attempt to income id: %s by user_id: %s", income_id, current_user.id)
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this income"
-        ) 
-
-    logging.info("Income id: %s found for user_id: %s", income_id, current_user.id)
-    return SuccessResponse(
-        message="Income retrieved successfully",
-        data=check_income_exists
     )
 
 
@@ -96,20 +72,54 @@ def read_incomes(
     Retrieve all income entries for the current user
     """
     logging.info("Fetching incomes for user_id: %s", current_user.id)
-
-    if current_user.role == Role.ADMIN.value:
-        # Admin can see all incomes
-        logging.info("Admin user_id: %s fetching all incomes", current_user.id)
-        incomes = db.query(Income).offset(skip).limit(limit).all()
-    else:
-        # Regular users can see only their own incomes
-        logging.info("Fetching income for user_id: %s", current_user.id)
-        incomes = db.query(Income).filter(Income.user_id == current_user.id).offset(skip).limit(limit).all()
+    try:
+        incomes = fetch_all_income_service(skip, limit, current_user, db)
+    except Exception as e:
+        logging.error("Unexpected error updating income: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
 
     logging.info("Found %d incomes for user_id: %s", len(incomes), current_user.id)
     return SuccessResponse(
         message="Incomes retrieved successfully",
         data=incomes
+    )
+
+
+@router.get("/{income_id}", response_model=SuccessResponse[IncomeResponse])
+def read_income(
+    income_id: int,
+    current_user: User = Depends(
+        require([Permission.INCOME_READ])
+    ),
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieve an income entry by ID
+    """
+    logging.info("Fetching income id: %s for user_id: %s", income_id, current_user.id)
+    try:
+        income = fetch_income_service(income_id, current_user, db)
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except IncomeNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        logging.error("Unexpected error updating income: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
+
+    logging.info("Income id: %s found for user_id: %s", income_id, current_user.id)
+    return SuccessResponse(
+        message="Income retrieved successfully",
+        data=income
     )
 
 
@@ -126,34 +136,28 @@ def update_income(
     Update an existing income entry
     """
     logging.info("Updating income id: %s for user_id: %s", income_id, current_user.id)
-    check_income_exists = db.query(Income).filter(Income.id == income_id).first()
-
-    if check_income_exists is None:
-        logging.warning("Income id: %s not found for user_id: %s", income_id, current_user.id)
-        raise HTTPException(status_code=404, detail="Income not found")
-    
-    if not is_authorized(check_income_exists, current_user):
-        logging.warning("Unauthorized update attempt to income id: %s by user_id: %s", income_id, current_user.id)
+    try:
+        income = update_income_service(income_id, income, current_user, db)
+    except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this income"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e)
         )
-
-    if not check_income_validity(check_income_exists):
-        logging.warning("Invalid income data for income id: %s, user_id: %s", income_id, current_user.id)
-        raise HTTPException(status_code=400, detail="Invalid income data")
-
-    income_data = income.model_dump(exclude_unset=True)
-    for key, value in income_data.items():
-        setattr(check_income_exists, key, value)
-
-    db.commit()
-    db.refresh(check_income_exists)
+    except IncomeNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Income not found"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
 
     logging.info("Income id: %s updated for user_id: %s", income_id, current_user.id)
     return SuccessResponse(
-        meessage="Income updated successfully",
-        data=check_income_exists
+        message="Income updated successfully",
+        data=income
     )
 
 
@@ -170,21 +174,23 @@ def delete_income(
     """
 
     logging.info("Deleting income id: %s for user_id: %s", income_id, current_user.id)
-    check_income_exists = db.query(Income).filter(Income.id == income_id).first()
-
-    if check_income_exists is None:
-        logging.warning("Income id: %s not found for user_id: %s", income_id, current_user.id)
-        raise HTTPException(status_code=404, detail="Income not found")
-
-    if not is_authorized(check_income_exists, current_user):
-        logging.warning("Unauthorized delete attempt to income id: %s by user_id: %s", income_id, current_user.id)
+    try:
+        income = delete_income_service(income_id, current_user, db)
+    except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to delete this income"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e)
         )
-
-    db.delete(check_income_exists)
-    db.commit()
+    except IncomeNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Income not found"
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
 
     logging.info("Income id: %s deleted for user_id: %s", income_id, current_user.id)
     return None
