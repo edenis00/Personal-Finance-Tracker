@@ -48,7 +48,7 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     is_verified: Optional[bool] = None
     profile_img_url: Optional[str] = None
-    balance: Decimal
+    balance: Optional[Decimal] = None
 
     @field_validator("balance")
     @classmethod

@@ -45,7 +45,7 @@ def create_income_service(income: IncomeCreate, current_user: User, db: Session)
         raise e
 
 
-def fetch_all_income_service(skip: int=0, limit: int=100, current_user: User, db: Session) -> Income:
+def fetch_all_income_service(current_user: User, db: Session, skip: int=0, limit: int=100) -> Income:
     """
     Retrieveing all incomes
     Args:
@@ -57,12 +57,8 @@ def fetch_all_income_service(skip: int=0, limit: int=100, current_user: User, db
         incomes
     """
     try:
-        if current_user.role == Role.ADMIN.value:
-            logging.info("Admin: %s, Retrieving all incomes of all users", current_user.id)
-            incomes = db.query(Income).offset(skip).limit(limit).all()
-        else:
-            logging.info("Retrieveing all incomes for user_id: %s", current_user.id)
-            incomes = db.query(Income).filter(Income.user_id == current_user.id).offset(skip).limit(limit).all()
+        logging.info("Retrieveing all incomes for user_id: %s", current_user.id)
+        incomes = db.query(Income).filter(Income.user_id == current_user.id).offset(skip).limit(limit).all()
         return incomes
     except Exception as e:
         logging.warning(f"Failed to read incomes of user: {current_user.id} due to: {str(e)}")
@@ -125,14 +121,17 @@ def update_income_service(
         user = db.query(User).filter(User.id == current_user.id).with_for_update().first()
         if not user:
             raise UserNotFoundError(f"User {current_user.id} not found")
-        old_income = income.amount
-        new_income = income_update.amount if income_update is not None else old_income
-        difference = old_income - new_income
+        old_amount = income.amount
+        new_amount = income_update.amount if income_update.amount is not None else old_amount
+        difference = old_amount - new_amount
         user.balance -= difference
         
-        updated_income = income_update.model_dump(exclude_unset=True)
-        for key, value in updated_income.items():
-            setattr(income, key, value)
+        if income_update.amount is not None:
+            income.amount = new_amount
+        if income_update.source is not None:
+            income.source = income_update.source
+        if income_update.date is not None:
+            income.date = income_update.date
         
         db.commit()
         db.refresh(income)
@@ -182,7 +181,7 @@ def authorized(income, current_user):
     """
     Check if the income belongs to the given user
     """
-    return income.user_id == current_user.id or current_user.role == Role.ADMIN.value
+    return income.user_id == current_user.id
 
 
 def calculate_total_income(incomes):

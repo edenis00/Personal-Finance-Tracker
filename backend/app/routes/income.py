@@ -21,7 +21,6 @@ from app.utils.income import (
 )
 
 
-
 router = APIRouter(
     prefix="/incomes",
     tags=["incomes"],
@@ -73,7 +72,7 @@ def read_incomes(
     """
     logging.info("Fetching incomes for user_id: %s", current_user.id)
     try:
-        incomes = fetch_all_income_service(skip, limit, current_user, db)
+        incomes = fetch_all_income_service(current_user, db, skip, limit)
     except Exception as e:
         logging.error("Unexpected error updating income: %s", e)
         raise HTTPException(
@@ -109,8 +108,12 @@ def read_income(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
+    except ValueError as e:
+        if "Unauthorized" in str(e):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Income not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
-        logging.error("Unexpected error updating income: %s", e)
+        logging.error("Unexpected error fetching income: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
@@ -139,16 +142,24 @@ def update_income(
     try:
         income = update_income_service(income_id, income, current_user, db)
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e)
-        )
+        if "Unauthorized" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(e)
+            )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except IncomeNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Income not found"
         )
+    except UserNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
     except Exception as e:
+        logging.error("Unexpected error updating income: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
@@ -177,16 +188,24 @@ def delete_income(
     try:
         income = delete_income_service(income_id, current_user, db)
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e)
-        )
+        if "Unauthorized" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(e)
+            )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except IncomeNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Income not found"
         )
-    except Exception:
+    except UserNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        logging.error("Unexpected error deleting income: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
