@@ -32,18 +32,18 @@ def login_service(user_login, db: Session):
     try:
         user = db.query(User).filter(User.email == user_login.email).first()
         if not user:
-            logger.warning("Data for user: %s not found", user_login.email)
+            logger.warning("Data for user not found")
             raise UserNotFoundError("User does not exist")
 
         if not verify_password(user_login.password, user.password):
-            logger.warning("Invalid password for user: %s", user_login.email)
+            logger.warning("Invalid password for user")
             raise ValueError("Invalid Password")
 
         logger.info("User %s logged in successfully", user_login.email)
         token, expire = create_access_token(data={"user_id": str(user.id)})
         return user, token, expire
     except Exception as e:
-        logger.error("Failed to login user %s due to: %s", user_login.email, str(e))
+        logger.error("Failed to login user due to: %s", str(e))
         raise
 
 
@@ -57,9 +57,7 @@ def signup_service(new_user, db: Session):
     try:
         user = db.query(User).filter(User.email == new_user.email).first()
         if user:
-            logger.warning(
-                "Signup attempt with already registered email: %s", user.email
-            )
+            logger.warning("Signup attempt with already registered email")
             raise ValueError("Email is already registered")
 
         hashed_password = (

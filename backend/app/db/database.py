@@ -1,6 +1,7 @@
 """
 Database setup and session management
 """
+
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.pool import Pool
@@ -17,8 +18,7 @@ engine = create_engine(
     max_overflow=20,
     pool_timeout=30,
     pool_recycle=3600,
-    pool_pre_ping=True
-
+    pool_pre_ping=True,
 )
 
 
@@ -37,6 +37,7 @@ def on_checkout(dbapi_connection, connection_record, connection_proxy):
     """
     logger.info("Database connection checked out from pool.")
 
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
@@ -49,14 +50,12 @@ def get_db_context():
     db = SessionLocal()
     try:
         yield db
-        db.commit()
     except Exception as e:
         db.rollback()
         logging.error(f"Database transaction failed: {str(e)}")
         raise
     finally:
         db.close()
-
 
 
 def get_db():

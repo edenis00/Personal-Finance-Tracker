@@ -3,7 +3,6 @@ Income utilities
 """
 import logging
 from collections import defaultdict
-from app.core.permissions import Role
 from sqlalchemy.orm import Session
 from app.models import Income, User
 from app.schema.income import IncomeCreate, IncomeUpdate

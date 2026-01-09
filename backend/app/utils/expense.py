@@ -2,12 +2,9 @@
 Expense utility functions
 """
 
-from sqlalchemy import select
-from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 from app.models import User, Expense
 from app.schema.expense import ExpenseCreate, ExpenseUpdate
-from app.core.permissions import Role
 import logging
 
 logger = logging.getLogger(__name__)

@@ -5,10 +5,10 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.models import Income, User
+from app.models import User
 from app.schema.income import IncomeCreate, IncomeResponse, IncomeUpdate
 from app.schema.base import SuccessResponse
-from app.core.permissions import Permission, Role
+from app.core.permissions import Permission
 from app.dependencies.rbac import require_permissions as require
 from app.utils.income import (
     create_income_service,

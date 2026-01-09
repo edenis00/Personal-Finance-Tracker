@@ -7,6 +7,7 @@ from enum import Enum
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 from datetime import datetime
 from decimal import Decimal
+from app.utils.auth import validate_password
 
 
 class UserRole(str, Enum):
@@ -36,8 +37,7 @@ class UserCreate(BaseModel):
     @field_validator("password")
     @classmethod
     def validate_password(cls, value):
-        if not value or value.strip() == "":
-            raise ValueError("Password cannot be empty")
+        validate_password(value)
         return value
 
     @field_validator("balance")

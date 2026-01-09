@@ -1,7 +1,6 @@
 """
 Docstring for backend.app.utils.savings
 """
-from app.core.permissions import Role
 
 
 

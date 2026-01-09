@@ -5,13 +5,12 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from typing import List
 from app.schema.user import UserResponse, AdminUserUpdate
 from app.models import User, Expense, Income, Savings
 from app.dependencies.rbac import require_admin, require_permissions as require
 from app.db.database import get_db
 from app.utils.user import fetch_all, fetch, update, delete
-from app.core.permissions import Permission, Role
+from app.core.permissions import Permission
 from app.schema.base import SuccessResponse
 
 

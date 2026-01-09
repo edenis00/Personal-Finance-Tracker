@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models import User
 from app.schema.user import UserResponse, UserUpdate
-from app.utils.user import fetch, update, fetch_all, delete
+from app.utils.user import fetch, update
 from app.core.permissions import Permission
 from app.schema.base import SuccessResponse
 from app.dependencies.rbac import require_permissions as require

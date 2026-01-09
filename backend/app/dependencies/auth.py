@@ -1,12 +1,19 @@
 """Authentication dependencies"""
+
 from fastapi import HTTPException, Depends, status, Header
+from jose import JWTError
 from sqlalchemy.orm import Session
 from app.utils.auth import decode_access_token
 from app.db.database import get_db
 from app.models import User
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-def get_current_user(authorization: str | None = Header(None), db: Session = Depends(get_db)):
+def get_current_user(
+    authorization: str | None = Header(None), db: Session = Depends(get_db)
+):
     """
     get_current_user
     """
@@ -30,10 +37,11 @@ def get_current_user(authorization: str | None = Header(None), db: Session = Dep
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-    except HTTPException:
+    except JWTError as e:
+        logger.warning(f"Token validation failed: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token; Could not validate credentials",
+            detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -41,7 +49,7 @@ def get_current_user(authorization: str | None = Header(None), db: Session = Dep
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"}
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     user = db.query(User).filter(User.id == user_id).first()
