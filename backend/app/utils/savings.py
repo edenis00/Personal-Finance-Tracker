@@ -13,4 +13,4 @@ def is_authorized(savings, current_user) -> bool:
     :param current_user: Current user object
     :return: True if the savings belongs to the user, False otherwise
     """
-    return savings.user_id == current_user.id or current_user.role == Role.ADMIN.value
+    return savings.user_id == current_user.id

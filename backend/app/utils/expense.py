@@ -63,19 +63,19 @@ def read_all_expense_service(
     """
     Read expense service
     """
-    if current_user.role == Role.ADMIN.value:
-        logging.info("Admin user_id: %s fetching all expenses", current_user.id)
-        expenses = db.query(Expense).offset(skip).limit(limit).all()
-
-    logger.info("Fetching expense for user_id: %s", current_user.id)
-    expenses = (
-        db.query(Expense)
-        .filter(Expense.user_id == current_user.id)
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
-    return expenses
+    try:
+        logger.info("Fetching expense for user_id: %s", current_user.id)
+        expenses = (
+            db.query(Expense)
+            .filter(Expense.user_id == current_user.id)
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+        return expenses
+    except Exception as e:
+        logging.error("Failed to read all expense of user_id: %s", current_user.id)
+        raise e
 
 
 def read_expense_service(
@@ -103,7 +103,7 @@ def update_expense_service(
             db.query(Expense).filter(Expense.id == expense_id).with_for_update().first()
         )
         if not expense:
-            raise ExpenseNotFoundError(f"Expense {expense.id} not found")
+            raise ExpenseNotFoundError(f"Expense {expense_id} not found")
 
         if not is_authorized(expense, current_user):
             raise ValueError("Unauthorized to update this expense")
@@ -146,9 +146,9 @@ def update_expense_service(
 
 def is_authorized(expense, current_user) -> bool:
     """
-    Check if the expense belongs to the given user or user is admin
+    Check if the expense belongs to the given user
     """
-    return expense.user_id == current_user.id or current_user.role == Role.ADMIN.value
+    return expense.user_id == current_user.id
 
 
 def delete_expense_service(expense_id: int, current_user: User, db: Session):
