@@ -1,6 +1,7 @@
 """
 User Schemas
 """
+
 from typing import Optional
 from enum import Enum
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
@@ -12,6 +13,7 @@ class UserRole(str, Enum):
     """
     Enum for user roles
     """
+
     USER = "user"
     ADMIN = "admin"
     MODERATOR = "moderator"
@@ -21,6 +23,7 @@ class UserCreate(BaseModel):
     """
     Schema for creating a new user
     """
+
     email: EmailStr
     password: str
     first_name: str
@@ -30,6 +33,13 @@ class UserCreate(BaseModel):
     profile_img_url: Optional[str] = None
     balance: Decimal
 
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value):
+        if not value or value.strip() == "":
+            raise ValueError("Password cannot be empty")
+        return value
+
     @field_validator("balance")
     @classmethod
     def validate_balance(cls, value):
@@ -37,10 +47,12 @@ class UserCreate(BaseModel):
             raise ValueError("Balance cannot be negative")
         return value
 
+
 class UserUpdate(BaseModel):
     """
     Schema for updating a user
     """
+
     email: Optional[EmailStr] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
@@ -60,14 +72,17 @@ class UserUpdate(BaseModel):
 
 class AdminUserUpdate(BaseModel):
     """Schema for admin updating a user"""
+
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
     is_verified: Optional[bool] = None
+
 
 class UserResponse(BaseModel):
     """
     Schema for user response
     """
+
     id: int
     email: EmailStr
     first_name: str
@@ -88,5 +103,6 @@ class UserLogin(BaseModel):
     """
     Schema for user login
     """
+
     email: EmailStr
     password: str

@@ -37,12 +37,12 @@ class SavingsUpdate(BaseModel):
     """
     Schema for update
     """
-    amount: Optional[Decimal]
-    current_amount: Optional[Decimal]
-    target_date: Optional[datetime]
-    duration_months: Optional[int]
-    description: Optional[str]
-    is_completed: Optional[bool]
+    amount: Optional[Decimal] = None
+    current_amount: Optional[Decimal] = None
+    target_date: Optional[datetime] = None
+    duration_months: Optional[int] = None
+    description: Optional[str] = None
+    is_completed: Optional[bool] = None
 
     @field_validator("amount", "current_amount")
     @classmethod
