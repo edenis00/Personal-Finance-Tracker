@@ -45,7 +45,7 @@ def create_expense(
     """
     Create a new expense entry
     """
-    logging.info(
+    logger.info(
         "Creating expense for user_id: %s, amount: %s, category: %s",
         current_user.id,
         expense.amount,
@@ -59,7 +59,7 @@ def create_expense(
     except UserNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
-        logging.error("Unexpected error updating expense: %s", e)
+        logger.error("Unexpected error updating expense: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
@@ -83,7 +83,7 @@ def read_expenses(
     """
     expenses = read_all_expense_service(current_user, db, skip, limit)
 
-    logging.info("Found %d expenses for user_id: %s", len(expenses), current_user.id)
+    logger.info("Found %d expenses for user_id: %s", len(expenses), current_user.id)
     return SuccessResponse(message="Expenses retrieved successfully", data=expenses)
 
 
@@ -95,16 +95,16 @@ def get_total_expenses(
     """
     Calculate total expenses for a user
     """
-    logging.info("Calculating total expenses for user_id: %s", current_user.id)
+    logger.info("Calculating total expenses for user_id: %s", current_user.id)
     expenses = db.query(Expense).filter(Expense.user_id == current_user.id).all()
 
     if not expenses:
-        logging.warning("No expenses found for user_id: %s", current_user.id)
+        logger.warning("No expenses found for user_id: %s", current_user.id)
         return {"user_id": current_user.id, "total_expenses": 0.0}
 
     total = calculate_total_expenses(expenses)
 
-    logging.info("Total expenses for user_id: %s is %f", current_user.id, total)
+    logger.info("Total expenses for user_id: %s is %f", current_user.id, total)
     return {"user_id": current_user.id, "total_expenses": total}
 
 
@@ -119,19 +119,19 @@ def get_expenses_by_category(
     """
     Retrieve expenses for a user filtered by category
     """
-    logging.info(
+    logger.info(
         "Fetching expenses for user_id: %s in category: %s", current_user.id, category
     )
     expenses = db.query(Expense).filter(Expense.user_id == current_user.id).all()
 
     if not expenses:
-        logging.warning("No expenses found for user_id: %s", current_user.id)
+        logger.warning("No expenses found for user_id: %s", current_user.id)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Expenses not found"
         )
 
     filtered_expenses = filter_expenses_by_category(expenses, category)
-    logging.info(
+    logger.info(
         "Found %d expenses for user_id: %s in category: %s",
         len(filtered_expenses),
         current_user.id,
@@ -151,22 +151,22 @@ def read_expense(
     """
     Retrieve an expense entry by ID
     """
-    logging.info("Fetching expense id: %s for user_id: %s", expense_id, current_user.id)
+    logger.info("Fetching expense id: %s for user_id: %s", expense_id, current_user.id)
     try:
         expense = read_expense_service(expense_id, db)
     except ExpenseNotFoundError as e:
-        logging.warning(
+        logger.warning(
             "Expense id: %s not found for user_id: %s", expense_id, current_user.id
         )
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
-        logging.error("Unexpected error updating expense: %s", e)
+        logger.error("Unexpected error updating expense: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
 
-    logging.info("Expense id: %s found for user_id: %s", expense_id, current_user.id)
+    logger.info("Expense id: %s found for user_id: %s", expense_id, current_user.id)
     return SuccessResponse(message="Expense retrieved successfully", data=expense)
 
 
@@ -180,7 +180,7 @@ def update_expense(
     """
     Update an existing expense entry
     """
-    logging.info("Updating expense id: %s for user_id: %s", expense_id, current_user.id)
+    logger.info("Updating expense id: %s for user_id: %s", expense_id, current_user.id)
 
     try:
         updated_expense = update_expense_service(
@@ -201,13 +201,13 @@ def update_expense(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     except Exception as e:
-        logging.error("Unexpected error updating expense: %s", e)
+        logger.error("Unexpected error updating expense: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
 
-    logging.info("Expense id: %s updated for user_id: %s", expense_id, current_user.id)
+    logger.info("Expense id: %s updated for user_id: %s", expense_id, current_user.id)
     return SuccessResponse(message="Expense updated successfully", data=updated_expense)
 
 
@@ -221,7 +221,7 @@ def delete_expense(
     Delete an expense entry
     """
 
-    logging.info("Deleting expense id: %s for user_id: %s", expense_id, current_user.id)
+    logger.info("Deleting expense id: %s for user_id: %s", expense_id, current_user.id)
     try:
         expense = delete_expense_service(expense_id, current_user, db)
     except InsufficientBalanceError as e:
@@ -239,11 +239,11 @@ def delete_expense(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     except Exception as e:
-        logging.error("Unexpected error updating expense: %s", e)
+        logger.error("Unexpected error updating expense: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
 
-    logging.info("Expense id: %s deleted for user_id: %s", expense_id, current_user.id)
+    logger.info("Expense id: %s deleted for user_id: %s", expense_id, current_user.id)
     return None

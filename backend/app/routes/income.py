@@ -43,7 +43,7 @@ def create_income(
     """
     Create a new income entry
     """
-    logging.info(
+    logger.info(
         "Creating income for user_id: %s, amount: %s, source: %s",
         current_user.id,
         income.amount,
@@ -54,13 +54,13 @@ def create_income(
     except UserNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
-        logging.error("Unexpected error updating income: %s", e)
+        logger.error("Unexpected error updating income: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
 
-    logging.info(
+    logger.info(
         "Income created with id: %s for user_id: %s", new_income.id, current_user.id
     )
     return SuccessResponse(message="Income created successfully", data=new_income)
@@ -76,17 +76,17 @@ def read_incomes(
     """
     Retrieve all income entries for the current user
     """
-    logging.info("Fetching incomes for user_id: %s", current_user.id)
+    logger.info("Fetching incomes for user_id: %s", current_user.id)
     try:
         incomes = fetch_all_income_service(current_user, db, skip, limit)
     except Exception as e:
-        logging.error("Unexpected error updating income: %s", e)
+        logger.error("Unexpected error updating income: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
 
-    logging.info("Found %d incomes for user_id: %s", len(incomes), current_user.id)
+    logger.info("Found %d incomes for user_id: %s", len(incomes), current_user.id)
     return SuccessResponse(message="Incomes retrieved successfully", data=incomes)
 
 
@@ -99,7 +99,7 @@ def read_income(
     """
     Retrieve an income entry by ID
     """
-    logging.info("Fetching income id: %s for user_id: %s", income_id, current_user.id)
+    logger.info("Fetching income id: %s for user_id: %s", income_id, current_user.id)
     try:
         income = fetch_income_service(income_id, current_user, db)
     except UserNotFoundError as e:
@@ -113,13 +113,13 @@ def read_income(
             )
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
-        logging.error("Unexpected error fetching income: %s", e)
+        logger.error("Unexpected error fetching income: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
 
-    logging.info("Income id: %s found for user_id: %s", income_id, current_user.id)
+    logger.info("Income id: %s found for user_id: %s", income_id, current_user.id)
     return SuccessResponse(message="Income retrieved successfully", data=income)
 
 
@@ -133,7 +133,7 @@ def update_income(
     """
     Update an existing income entry
     """
-    logging.info("Updating income id: %s for user_id: %s", income_id, current_user.id)
+    logger.info("Updating income id: %s for user_id: %s", income_id, current_user.id)
     try:
         income = update_income_service(income_id, income, current_user, db)
     except ValueError as e:
@@ -147,13 +147,13 @@ def update_income(
     except UserNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
-        logging.error("Unexpected error updating income: %s", e)
+        logger.error("Unexpected error updating income: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
 
-    logging.info("Income id: %s updated for user_id: %s", income_id, current_user.id)
+    logger.info("Income id: %s updated for user_id: %s", income_id, current_user.id)
     return SuccessResponse(message="Income updated successfully", data=income)
 
 
@@ -167,7 +167,7 @@ def delete_income(
     Delete an income entry
     """
 
-    logging.info("Deleting income id: %s for user_id: %s", income_id, current_user.id)
+    logger.info("Deleting income id: %s for user_id: %s", income_id, current_user.id)
     try:
         income = delete_income_service(income_id, current_user, db)
     except ValueError as e:
@@ -181,11 +181,11 @@ def delete_income(
     except UserNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
-        logging.error("Unexpected error deleting income: %s", e)
+        logger.error("Unexpected error deleting income: %s", e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
 
-    logging.info("Income id: %s deleted for user_id: %s", income_id, current_user.id)
+    logger.info("Income id: %s deleted for user_id: %s", income_id, current_user.id)
     return None

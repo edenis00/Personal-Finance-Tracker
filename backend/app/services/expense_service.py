@@ -48,7 +48,7 @@ def create_expense_service(
         return expense
     except Exception as e:
         db.rollback()
-        logging.error("Failed to create expense %s: %s", expense.id, str(e))
+        logger.error("Failed to create expense %s: %s", expense.id, str(e))
         raise e
 
 
@@ -69,7 +69,7 @@ def read_all_expense_service(
         )
         return expenses
     except Exception as e:
-        logging.error("Failed to read all expense of user_id: %s", current_user.id)
+        logger.error("Failed to read all expense of user_id: %s", current_user.id)
         raise e
 
 
@@ -157,7 +157,7 @@ def delete_expense_service(expense_id: int, current_user: User, db: Session):
             raise ExpenseNotFoundError("Expense %s not found", expense_id)
 
         if not is_authorized(expense, current_user):
-            logging.warning(
+            logger.warning(
                 f"Unauthorized delete attempt to expense id: {expense_id} by user_id: {current_user.id}",
             )
             raise ValueError("Unauthorized to delete this expense")

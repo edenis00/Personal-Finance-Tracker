@@ -43,7 +43,7 @@ def create_income_service(
 
     except Exception as e:
         db.rollback()
-        logging.warning(
+        logger.warning(
             f"Failed to create income for user {current_user.id} due to: {str(e)}"
         )
         raise e
@@ -63,7 +63,7 @@ def fetch_all_income_service(
         incomes
     """
     try:
-        logging.info("Retrieveing all incomes for user_id: %s", current_user.id)
+        logger.info("Retrieveing all incomes for user_id: %s", current_user.id)
         incomes = (
             db.query(Income)
             .filter(Income.user_id == current_user.id)
@@ -73,7 +73,7 @@ def fetch_all_income_service(
         )
         return incomes
     except Exception as e:
-        logging.warning(
+        logger.warning(
             f"Failed to read incomes of user: {current_user.id} due to: {str(e)}"
         )
         raise e
@@ -91,12 +91,12 @@ def fetch_income_service(income_id: int, current_user: User, db: Session) -> Inc
     """
     try:
 
-        logging.info(
+        logger.info(
             "Retrieveing incomes id: %s for user_id: %s", income_id, current_user.id
         )
         income = db.query(Income).filter(Income.id == income_id).first()
         if not income:
-            logging.warning(
+            logger.warning(
                 "Income id %s for user_id %s noy found", income_id, current_user.id
             )
             raise IncomeNotFoundError("Income not found")
@@ -105,7 +105,7 @@ def fetch_income_service(income_id: int, current_user: User, db: Session) -> Inc
             raise ValueError("Unauthorized to access this income")
         return income
     except Exception as e:
-        logging.warning(
+        logger.warning(
             f"Failed to read incomes of user: {current_user.id} due to: {str(e)}"
         )
         raise e
@@ -124,14 +124,14 @@ def update_income_service(
     return:
         incomes
     """
-    logging.info("Updating income id: %s for user_id: %s", income_id, current_user.id)
+    logger.info("Updating income id: %s for user_id: %s", income_id, current_user.id)
     try:
         income = (
             db.query(Income).filter(Income.id == income_id).with_for_update().first()
         )
 
         if income is None:
-            logging.warning(
+            logger.warning(
                 "Income: %s for user %s not found", income_id, current_user.id
             )
             raise IncomeNotFoundError(f"Income {income_id} not found")
@@ -182,7 +182,7 @@ def delete_income_service(income_id: int, current_user: User, db: Session):
         )
 
         if not income:
-            logging.warning(
+            logger.warning(
                 "Income %s not found for user_id %s", income_id, current_user.id
             )
             raise IncomeNotFoundError("Income not found")

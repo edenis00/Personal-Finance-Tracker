@@ -52,7 +52,7 @@ def get_db_context():
         yield db
     except Exception as e:
         db.rollback()
-        logging.error(f"Database transaction failed: {str(e)}")
+        logger.error(f"Database transaction failed: {str(e)}")
         raise
     finally:
         db.close()
