@@ -1,6 +1,7 @@
 """
 Schema models
 """
+
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, field_validator
@@ -11,10 +12,12 @@ class SavingsCreate(BaseModel):
     """
     Schema for create
     """
+
     amount: Decimal
     current_amount: Decimal = Decimal(0.0)
     target_date: Optional[datetime] = None
     duration_months: Optional[int] = None
+    goal: Optional[Decimal] = None
     description: Optional[str] = None
     is_completed: bool = False
 
@@ -37,10 +40,12 @@ class SavingsUpdate(BaseModel):
     """
     Schema for update
     """
+
     amount: Optional[Decimal] = None
     current_amount: Optional[Decimal] = None
     target_date: Optional[datetime] = None
     duration_months: Optional[int] = None
+    goal: Optional[Decimal] = None
     description: Optional[str] = None
     is_completed: Optional[bool] = None
 
@@ -63,11 +68,13 @@ class SavingsResponse(BaseModel):
     """
     Schema for response
     """
+
     id: int
     amount: Decimal
     current_amount: Decimal
     target_date: Optional[datetime] = None
     duration_months: Optional[int] = None
+    goal: Optional[Decimal] = None
     description: Optional[str] = None
     is_completed: bool
     user_id: int
