@@ -11,9 +11,8 @@ from app.schema.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 from app.schema.base import SuccessResponse
 from app.core.permissions import Permission
 from app.dependencies.rbac import require_permissions as require
-from app.utils.expense import (
-    calculate_total_expenses,
-    filter_expenses_by_category,
+from app.utils.expense import calculate_total_expenses, filter_expenses_by_category
+from app.services.expense_service import (
     create_expense_service,
     read_all_expense_service,
     read_expense_service,
