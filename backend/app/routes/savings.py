@@ -11,7 +11,13 @@ from app.schema.savings import SavingsCreate, SavingsResponse, SavingsUpdate
 from app.schema.base import SuccessResponse
 from app.core.permissions import Permission, Role
 from app.dependencies.rbac import require_permissions as require
-from app.utils.savings import is_authorized
+from app.services.savings_service import (
+    get_saving_service,
+    get_all_savings_service,
+    create_saving_service,
+    update_saving_service,
+    delete_saving_service,
+)
 
 
 router = APIRouter(prefix="/savings", tags=["Savings"])
@@ -29,29 +35,16 @@ def read_saving(
     Retrieving savings for a user
     """
 
-    logger.info("Fetching savings id: %s for user_id: %s", savings_id, current_user.id)
-    savings = db.query(Savings).filter(Savings.id == savings_id).first()
-
-    if not savings:
-        logger.warning(
-            "Savings id: %s not found for user_id: %s", savings_id, current_user.id
-        )
-        raise HTTPException(status_code=404, detail="Savings not found")
-
-    if is_authorized(savings, current_user):
-        logger.warning(
-            "Unauthorized access attempt to savings id: %s by user_id: %s",
-            savings_id,
-            current_user.id,
-        )
+    try:
+        savings = get_saving_service(savings_id, current_user, db)
+        if not savings:
+            raise HTTPException(status_code=404, detail="Savings not found")
+        return SuccessResponse(message="Savings retrieved successfully", data=savings)
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this savings",
+            detail=str(e),
         )
-
-    logger.info("Savings id: %s retrieved for user_id: %s", savings_id, current_user.id)
-
-    return SuccessResponse(message="Savings retrieved successfully", data=savings)
 
 
 @router.get("/", response_model=SuccessResponse[list[SavingsResponse]])
@@ -62,18 +55,7 @@ def read_savings(
     """
     Retrieving all savings for a user
     """
-    logger.info("Fetching all savings for user_id: %s", current_user.id)
-
-    if current_user.role == Role.ADMIN.value:
-        logger.info("Admin user_id: %s retrieving all savings entries", current_user.id)
-        savings_list = db.query(Savings).all()
-    else:
-        logger.info("user_id: %s retrieving own savings entries", current_user.id)
-        savings_list = (
-            db.query(Savings).filter(Savings.user_id == current_user.id).all()
-        )
-
-    logger.info("Found %d savings for user_id: %s", len(savings_list), current_user.id)
+    savings_list = get_all_savings_service(current_user, db)
     return SuccessResponse(message="Savings retrieved successfully", data=savings_list)
 
 
@@ -91,29 +73,14 @@ def create(
     Creating new savings for a user
     """
 
-    logger.info(
-        "Creating savings for user_id: %s, amount: %s, goal: %s",
-        current_user.id,
-        saving.amount,
-    )
-
-    new_savings = Savings(**saving.model_dump(), user_id=current_user.id)
-
-    if is_authorized(new_savings, current_user):
-        logger.warning("Unauthorized create attempt by user_id: %s", current_user.id)
+    try:
+        new_savings = create_saving_service(saving, current_user, db)
+        return SuccessResponse(message="Savings created successfully", data=new_savings)
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to create this savings",
+            detail=str(e),
         )
-
-    db.add(new_savings)
-    db.commit()
-    db.refresh(new_savings)
-
-    logger.info(
-        "Savings created with id: %s for user_id: %s", new_savings.id, current_user.id
-    )
-    return SuccessResponse(message="Savings created successfully", data=new_savings)
 
 
 @router.put(
@@ -130,37 +97,18 @@ def update(
     """
     Updating savings for a user
     """
-    logger.info("Updating savings id: %s for user_id: %s", savings_id, current_user.id)
-    existing_savings = db.query(Savings).filter(Savings.id == savings_id).first()
-
-    if not existing_savings:
-        logger.warning(
-            "Savings id: %s not found for user_id: %s", savings_id, current_user.id
+    try:
+        existing_savings = update_saving_service(savings_id, savings, current_user, db)
+        if not existing_savings:
+            raise HTTPException(status_code=404, detail="Savings not found")
+        return SuccessResponse(
+            message="Savings updated successfully", data=existing_savings
         )
-        raise HTTPException(status_code=404, detail="Savings not found")
-
-    if is_authorized(existing_savings, current_user):
-        logger.warning(
-            "Unauthorized update attempt to savings id: %s by user_id: %s",
-            savings_id,
-            current_user.id,
-        )
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this savings",
+            detail=str(e),
         )
-
-    update_data = savings.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(existing_savings, key, value)
-
-    db.commit()
-    db.refresh(existing_savings)
-
-    logger.info("Savings id: %s updated for user_id: %s", savings_id, current_user.id)
-    return SuccessResponse(
-        message="Savings updated successfully", data=existing_savings
-    )
 
 
 @router.delete("/{savings_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -172,28 +120,13 @@ def delete(
     """
     Deleting savings of a user
     """
-    logger.info("Deleting savings id: %s for user_id: %s", savings_id, current_user.id)
-    existing_savings = db.query(Savings).filter(Savings.id == savings_id).first()
-
-    if not existing_savings:
-        logger.warning(
-            "Savings id: %s not found for user_id: %s", savings_id, current_user.id
-        )
-        raise HTTPException(status_code=404, detail="Savings not found")
-
-    if is_authorized(existing_savings, current_user):
-        logger.warning(
-            "Unauthorized delete attempt to savings id: %s by user_id: %s",
-            savings_id,
-            current_user.id,
-        )
+    try:
+        existing_savings = delete_saving_service(savings_id, current_user, db)
+        if not existing_savings:
+            raise HTTPException(status_code=404, detail="Savings not found")
+        return None
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to delete this savings",
+            detail=str(e),
         )
-
-    db.delete(existing_savings)
-    db.commit()
-
-    logger.info("Savings id: %s deleted for user_id: %s", savings_id, current_user.id)
-    return None

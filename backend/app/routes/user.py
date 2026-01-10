@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models import User
 from app.schema.user import UserResponse, UserUpdate
-from app.utils.user import fetch, update
+from app.services.user_service import get_user_service, update_user_service
 from app.core.permissions import Permission
 from app.schema.base import SuccessResponse
 from app.dependencies.rbac import require_permissions as require
@@ -25,7 +25,7 @@ def fetch_user(
 ):
     """Get a user by ID"""
     logger.info("Fetching user profile for user_id: %s", current_user.id)
-    user = fetch(db, current_user.id)
+    user = get_user_service(db, current_user.id)
 
     if not user:
         logger.warning("User not found for user_id: %s", current_user.id)
@@ -45,7 +45,7 @@ def update_profile(
 ):
     """Update a user"""
     logger.info("Updating user profile for user_id: %s", current_user.id)
-    updated_user = update(db, user, current_user.id)
+    updated_user = update_user_service(db, user, current_user.id)
 
     if not updated_user:
         logger.warning("User not found for user_id: %s", current_user.id)

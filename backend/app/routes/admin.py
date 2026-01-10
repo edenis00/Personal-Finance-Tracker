@@ -10,7 +10,12 @@ from app.schema.user import UserResponse, AdminUserUpdate
 from app.models import User, Expense, Income, Savings
 from app.dependencies.rbac import require_admin, require_permissions as require
 from app.db.database import get_db
-from app.utils.user import fetch_all, fetch, update, delete
+from app.services.user_service import (
+    get_all_users_service,
+    get_user_service,
+    update_user_service,
+    delete_user_service,
+)
 from app.core.permissions import Permission
 from app.schema.base import SuccessResponse
 
@@ -54,7 +59,7 @@ def get_all_users(
     """Get all users with pagination"""
 
     logger.info("Fetching users list by admin user_id: %s", current_user.id)
-    users = fetch_all(db, skip=skip, limit=limit)
+    users = get_all_users_service(db, skip=skip, limit=limit)
 
     if not users:
         logger.warning("No users found by admin user_id: %s", current_user.id)
@@ -75,7 +80,7 @@ def fetch_user_by_id(
     """Get a user by ID for admins"""
 
     logger.info("Fetching user_id: %s by admin user_id: %s", user_id, current_user.id)
-    user = fetch(db, user_id)
+    user = get_user_service(db, user_id)
 
     if not user:
         logger.warning(
@@ -99,7 +104,7 @@ def update_user_by_id(
     """Update a user for admins"""
 
     logger.info("Updating user_id: %s by admin user_id: %s", user_id, current_user.id)
-    updated_user = update(db, user, user_id)
+    updated_user = update_user_service(db, user, user_id)
 
     if not updated_user:
         logger.warning(
@@ -122,7 +127,7 @@ def delete_user(
     """Delete a user for admins"""
 
     logger.info("Deleting user_id: %s by admin user_id: %s", user_id, current_user.id)
-    deleted_user = delete(db, user_id)
+    deleted_user = delete_user_service(db, user_id)
 
     if not deleted_user:
         logger.warning(
@@ -150,7 +155,7 @@ def activate_deactivate_user(
         user_id,
         current_user.id,
     )
-    user = fetch(db, user_id)
+    user = get_user_service(db, user_id)
     if not user:
         logger.warning(
             "User_id: %s not found by admin user_id: %s", user_id, current_user.id
