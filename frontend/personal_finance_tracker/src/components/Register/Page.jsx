@@ -1,27 +1,36 @@
-import { Wallet } from "lucide-react"
+import { Wallet, Eye, EyeOff } from "lucide-react"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 
-export default function Page() {
+export default function RegisterPage() {
 
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
         email: "",
-        password: ""
+        password: "",
+        confirmPassword: ""
     })
 
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
+    const handleChange = (e) => {
+        const { id, value } = e.target
+        setFormData(prev => ({
+            ...prev,
+            [id]: value
+        }))
+    }
+
     const handleSubmit = (e) => {
         e.preventDefault()
         // Handle registration logic here
-        if(formData.password !== formData.confirmPassword) {
+        if (formData.password !== formData.confirmPassword) {
             alert("Passwords do not match")
             return
         }
-        
+
         // redirect here after successful registration
     }
     return (
@@ -43,6 +52,8 @@ export default function Page() {
                                 type="text"
                                 placeholder="First Name"
                                 required
+                                value={formData.firstName}
+                                onChange={handleChange}
                                 className="w-full h-11 rounded-lg border border-gray-300 px-4 mt-1"
                             />
                         </div>
@@ -52,6 +63,8 @@ export default function Page() {
                                 id="lastName"
                                 type="text"
                                 placeholder="Last Name"
+                                value={formData.lastName}
+                                onChange={handleChange}
                                 className="w-full h-11 rounded-lg border border-gray-300 px-4 mt-1"
                             />
                         </div>
@@ -61,27 +74,51 @@ export default function Page() {
                                 id="email"
                                 type="email"
                                 placeholder="example@gmail.com"
+                                value={formData.email}
+                                onChange={handleChange}
                                 className="w-full h-11 rounded-lg border border-gray-300 px-4 mt-1"
                             />
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="password" className="text-sm font-medium">Password</label>
-                            <input
-                                id="password"
-                                type="password"
-                                placeholder="Password"
-                                className="w-full h-11 rounded-lg border border-gray-300 px-4 mt-1"
-                            />
+                            <div className="relative">
+                                <input
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    className="w-full h-11 rounded-lg border border-gray-300 px-4 mt-1"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 transition-colors"
+                                >
+                                    {showPassword ? (<EyeOff className="h-5 w-5" />) : <Eye className="h-5 w-5" />}
+                                </button>
+                            </div>
                         </div>
 
                         <div className="space-y-2">
                             <label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</label>
-                            <input
-                                id="confirmPassword"
-                                type="password"
-                                placeholder="Confimr Password"
-                                className="w-full h-11 rounded-lg border border-gray-300 px-4 mt-1"
-                            />
+                            <div className="relative">
+                                <input
+                                    id="confirmPassword"
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    placeholder="Confirm Password"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    className="w-full h-11 rounded-lg border border-gray-300 px-4 mt-1"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 transition-colors"
+                                >
+                                    {showConfirmPassword ? (<EyeOff className="h-5 w-5" />) : <Eye className="h-5 w-5" />}
+                                </button>
+                            </div>
                         </div>
                         <div className="col-span-2 flex items-center space-x-2">
                             <input type="checkbox" name="terms" id="terms" />
@@ -95,7 +132,7 @@ export default function Page() {
                     <div className="text-center mt-6">
                         <p className="text-gray-600 text-sm">
                             Already have an account {" "}
-                            {/* <Link to="/login" className="text-blue-700 font-medium hover:underline">Sign In</Link> */}
+                            <Link to="/login" className="text-blue-700 font-medium hover:underline">Sign In</Link>
                         </p>
                     </div>
 

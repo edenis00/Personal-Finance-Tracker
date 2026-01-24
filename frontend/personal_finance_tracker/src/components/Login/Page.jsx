@@ -4,9 +4,9 @@ import { Link, useNavigate } from 'react-router-dom'
 
 
 
-export default function Page() {
+export default function LoginPage() {
 
-    // const navigate = useNavigate()
+    const navigate = useNavigate()
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -16,7 +16,7 @@ export default function Page() {
     const handleSubmit = (e) => {
         e.preventDefault()
         // Handle login logic here
-        // navigate("/dashboard")
+        navigate("/dashboard")
     }
 
     return (
@@ -50,7 +50,7 @@ export default function Page() {
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <label htmlFor="password" className="text-sm font-medium">Password</label>
-                                {/* <Link to="#" className="text-gray-600 text-blue-700 hover:underline">Forgot password?</Link> */}
+                                <Link to="#" className="text-gray-600 text-blue-700 hover:underline">Forgot password?</Link>
                             </div>
                             <div className="relative">
                                 <input
@@ -87,7 +87,7 @@ export default function Page() {
                     <div className="mt-6 text-center">
                         <p className="text-sm text-gray-600">
                             Don't have an account?{' '}
-                            {/* <Link to="/register" className="text-blue-700 font-medium hover:underline">Sign Up</Link> */}
+                            <Link to="/register" className="text-blue-700 font-medium hover:underline">Sign Up</Link>
                         </p>
                     </div>
                 </div>
