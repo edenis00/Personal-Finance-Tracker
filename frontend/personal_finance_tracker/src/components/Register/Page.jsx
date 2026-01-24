@@ -1,8 +1,11 @@
 import { Wallet, Eye, EyeOff } from "lucide-react"
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import api from '../../services/api'
 
 export default function RegisterPage() {
+
+    const navigate = useNavigate()
 
     const [formData, setFormData] = useState({
         firstName: "",
@@ -14,6 +17,8 @@ export default function RegisterPage() {
 
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [error, setError] = useState('')
+    const [loading, setLoading] = useState(false)
 
     const handleChange = (e) => {
         const { id, value } = e.target
@@ -23,15 +28,31 @@ export default function RegisterPage() {
         }))
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        // Handle registration logic here
+        setError('')
+
         if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match")
+            setError("Passwords do not match")
             return
         }
 
-        // redirect here after successful registration
+        setLoading(true)
+        try {
+            const userData = {
+                email: formData.email,
+                password: formData.password,
+                first_name: formData.firstName,
+                last_name: formData.lastName,
+                balance: 0
+            }
+            await api.signup(userData)
+            navigate("/login")
+        } catch (error) {
+            setError(error.message)
+        } finally {
+            setLoading(false)
+        }
     }
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
@@ -45,6 +66,11 @@ export default function RegisterPage() {
                 </div>
                 <div className="bg-white rounded-2xl p-8 shadow-lg">
                     <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+                        {error && (
+                            <div className="col-span-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm mb-4">
+                                {error}
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <label htmlFor="firstName" className="text-sm font-medium">First Name</label>
                             <input
@@ -126,7 +152,13 @@ export default function RegisterPage() {
                                 {" "}By continuing, you agree to our Terms of Service and Privacy Policy
                             </p>
                         </div>
-                        <button type="submit" className="col-span-2 bg-blue-700 text-white py-3 rounded-lg mt-2 hover:bg-blue-800 cursor-pointer">Create Account</button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="col-span-2 bg-blue-700 text-white py-3 rounded-lg mt-2 hover:bg-blue-800 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {loading ? 'Creating Account...' : 'Create Account'}
+                        </button>
                     </form>
 
                     <div className="text-center mt-6">
