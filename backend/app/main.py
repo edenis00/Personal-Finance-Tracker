@@ -1,6 +1,7 @@
 """
 Main appplication file
 """
+
 import logging
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -15,7 +16,7 @@ from app.routes import (
     income_router,
     expense_router,
     savings_router,
-    admin_router
+    admin_router,
 )
 
 
@@ -24,7 +25,7 @@ app = FastAPI(
     description="An API to help you track your personal finances, including income, expenses, and savings.",
     version="1.0.0",
     docs_url="/api/v1/docs",
-    redoc_url="/api/v1/redocs"
+    redoc_url="/api/v1/redocs",
 )
 
 API_V1_PREFIX = "/api/v1"
@@ -64,4 +65,5 @@ async def read_root():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

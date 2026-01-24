@@ -1,6 +1,7 @@
 """
 Configuration settings
 """
+
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -31,6 +32,7 @@ class Settings(BaseSettings):
         "env_file": ".env",
         "env_file_encoding": "utf-8",
         "case_sensitive": False,
+        "extra": "allow",
     }
 
     @property
@@ -41,7 +43,9 @@ class Settings(BaseSettings):
         if self.database_url:
             return self.database_url
 
-        if not all([self.db_user, self.db_password, self.db_host, self.db_port, self.db_name]):
+        if not all(
+            [self.db_user, self.db_password, self.db_host, self.db_port, self.db_name]
+        ):
             raise ValueError("Incomplete database configuration")
 
         return (
@@ -63,5 +67,6 @@ def get_settings() -> Settings:
     Get the application settings with caching to avoid reloading.
     """
     return Settings()
+
 
 settings = Settings()
