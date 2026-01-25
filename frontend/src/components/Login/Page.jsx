@@ -1,22 +1,32 @@
 import { Wallet, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import api from '../../services/api'
 
 
 
-export default function LoginPage() {
+export default function LoginPage({ onLogin }) {
 
-    const navigate = useNavigate()
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
+    const [error, setError] = useState('')
+    const [loading, setLoading] = useState(false)
 
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        // Handle login logic here
-        navigate("/dashboard")
+        setError('')
+        setLoading(true)
+        try {
+            const response = await api.login(email, password)
+            onLogin(response.user)
+        } catch (error) {
+            setError(error.message)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -32,6 +42,11 @@ export default function LoginPage() {
 
                 <div className="bg-white rounded-2xl p-8 shadow-lg">
                     <form onSubmit={handleSubmit} className='space-y-6'>
+                        {error && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                                {error}
+                            </div>
+                        )}
                         <div className='space-y-2'>
                             <label htmlFor="email" className='text-sm font-medium'>
                                 Email Address
@@ -78,9 +93,10 @@ export default function LoginPage() {
 
                         <button
                             type='submit'
-                            className="w-full h-11 bg-blue-700 rounded-md text-white font-medium hover:bg-blue-800 transition-colors cursor-pointer"
+                            disabled={loading}
+                            className="w-full h-11 bg-blue-700 rounded-md text-white font-medium hover:bg-blue-800 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Sign In
+                            {loading ? 'Signing In...' : 'Sign In'}
                         </button>
                     </form>
 
