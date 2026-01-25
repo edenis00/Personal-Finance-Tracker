@@ -32,19 +32,11 @@ class UserCreate(BaseModel):
     phone_number: Optional[str] = None
     role: UserRole = UserRole.USER
     profile_img_url: Optional[str] = None
-    balance: Decimal
 
     @field_validator("password")
     @classmethod
     def validate_password(cls, value):
         validate_password(value)
-        return value
-
-    @field_validator("balance")
-    @classmethod
-    def validate_balance(cls, value):
-        if value < 0:
-            raise ValueError("Balance cannot be negative")
         return value
 
 
@@ -60,14 +52,6 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     is_verified: Optional[bool] = None
     profile_img_url: Optional[str] = None
-    balance: Optional[Decimal] = None
-
-    @field_validator("balance")
-    @classmethod
-    def validate_balance(cls, value):
-        if value < 0:
-            raise ValueError("Balance cannot be negative")
-        return value
 
 
 class AdminUserUpdate(BaseModel):
@@ -76,6 +60,7 @@ class AdminUserUpdate(BaseModel):
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
     is_verified: Optional[bool] = None
+    balance: Optional[Decimal] = None
 
 
 class UserResponse(BaseModel):
