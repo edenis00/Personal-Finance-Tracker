@@ -4,7 +4,6 @@ import { Link, useNavigate } from "react-router-dom"
 import api from '../../services/api'
 
 export default function RegisterPage() {
-
     const navigate = useNavigate()
 
     const [formData, setFormData] = useState({
@@ -44,7 +43,6 @@ export default function RegisterPage() {
                 password: formData.password,
                 first_name: formData.firstName,
                 last_name: formData.lastName,
-                balance: 0
             }
             await api.signup(userData)
             navigate("/login")
@@ -54,6 +52,7 @@ export default function RegisterPage() {
             setLoading(false)
         }
     }
+
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
             <div className="w-full max-w-lg">
@@ -89,6 +88,7 @@ export default function RegisterPage() {
                                 id="lastName"
                                 type="text"
                                 placeholder="Last Name"
+                                required
                                 value={formData.lastName}
                                 onChange={handleChange}
                                 className="w-full h-11 rounded-lg border border-gray-300 px-4 mt-1"
@@ -100,6 +100,7 @@ export default function RegisterPage() {
                                 id="email"
                                 type="email"
                                 placeholder="example@gmail.com"
+                                required
                                 value={formData.email}
                                 onChange={handleChange}
                                 className="w-full h-11 rounded-lg border border-gray-300 px-4 mt-1"
@@ -112,6 +113,7 @@ export default function RegisterPage() {
                                     id="password"
                                     type={showPassword ? "text" : "password"}
                                     placeholder="Password"
+                                    required
                                     value={formData.password}
                                     onChange={handleChange}
                                     className="w-full h-11 rounded-lg border border-gray-300 px-4 mt-1"
@@ -133,6 +135,7 @@ export default function RegisterPage() {
                                     id="confirmPassword"
                                     type={showConfirmPassword ? "text" : "password"}
                                     placeholder="Confirm Password"
+                                    required
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
                                     className="w-full h-11 rounded-lg border border-gray-300 px-4 mt-1"
@@ -147,9 +150,9 @@ export default function RegisterPage() {
                             </div>
                         </div>
                         <div className="col-span-2 flex items-center space-x-2">
-                            <input type="checkbox" name="terms" id="terms" />
+                            <input type="checkbox" name="terms" id="terms" required />
                             <p className='text-center text-xs text-gray-600'>
-                                {" "}By continuing, you agree to our Terms of Service and Privacy Policy
+                                By continuing, you agree to our Terms of Service and Privacy Policy
                             </p>
                         </div>
                         <button
@@ -167,7 +170,6 @@ export default function RegisterPage() {
                             <Link to="/login" className="text-blue-700 font-medium hover:underline">Sign In</Link>
                         </p>
                     </div>
-
                 </div>
             </div>
         </div>
