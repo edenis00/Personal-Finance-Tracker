@@ -7,7 +7,7 @@ const IncomePage = () => {
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({
         amount: '',
-        description: '',
+        source: '',
         date: new Date().toISOString().split('T')[0]
     });
     const [formError, setFormError] = useState('');
@@ -231,7 +231,7 @@ const IncomePage = () => {
                                             ${parseFloat(income.amount).toFixed(2)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {income.description}
+                                            {income.source}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {new Date(income.date).toLocaleDateString()}
