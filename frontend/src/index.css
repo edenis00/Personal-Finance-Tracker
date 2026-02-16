@@ -1,1 +1,100 @@
 @import "tailwindcss";
+
+/* ===== Tailwind v4 dark mode config ===== */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ===== Theme custom properties ===== */
+:root {
+    /* Backgrounds */
+    --color-bg-primary: #ffffff;
+    --color-bg-secondary: #f8fafc;
+    --color-bg-hover: #f1f5f9;
+    --color-bg-muted: #f9fafb;
+
+    /* Text */
+    --color-text-primary: #0f172a;
+    --color-text-secondary: #475569;
+    --color-text-muted: #94a3b8;
+
+    /* Borders */
+    --color-border: #e2e8f0;
+    --color-border-light: #f1f5f9;
+
+    /* Surfaces (cards) */
+    --color-surface: #ffffff;
+    --color-surface-elevated: #ffffff;
+
+    /* Input */
+    --color-input-bg: #ffffff;
+    --color-input-border: #d1d5db;
+
+    /* Table */
+    --color-table-header: #f9fafb;
+    --color-table-hover: #f9fafb;
+    --color-table-border: #e5e7eb;
+
+    color-scheme: light;
+}
+
+.dark {
+    /* Backgrounds */
+    --color-bg-primary: #000000;
+    --color-bg-secondary: #0a0a0a;
+    --color-bg-hover: #171717;
+    --color-bg-muted: #0a0a0a;
+
+    /* Text */
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #a3a3a3;
+    --color-text-muted: #525252;
+
+    /* Borders */
+    --color-border: #1f1f1f;
+    --color-border-light: #141414;
+
+    /* Surfaces (cards) */
+    --color-surface: #0a0a0a;
+    --color-surface-elevated: #171717;
+
+    /* Input */
+    --color-input-bg: #0a0a0a;
+    --color-input-border: #262626;
+
+    /* Table */
+    --color-table-header: #0a0a0a;
+    --color-table-hover: #141414;
+    --color-table-border: #1f1f1f;
+
+    color-scheme: dark;
+}
+
+/* ===== Base Styles ===== */
+* {
+    transition: background-color 0.3s ease, color 0.2s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== Custom Scrollbar ===== */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 20px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+}
