@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
+import Loader from '../UI/Loader';
 
 const IncomePage = () => {
     const [incomes, setIncomes] = useState([]);
@@ -94,11 +95,7 @@ const IncomePage = () => {
     const inputClasses = "w-full p-3 border border-[var(--color-input-border)] rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-[var(--color-input-bg)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none transition-colors";
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-64">
-                <div className="text-lg text-[var(--color-text-secondary)]">Loading incomes...</div>
-            </div>
-        );
+        return <Loader />;
     }
 
     return (

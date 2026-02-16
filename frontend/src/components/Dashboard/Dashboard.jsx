@@ -9,10 +9,10 @@ import {
     ArrowUpRight,
     ArrowDownRight,
     AlertCircle,
-    Loader2,
     RefreshCw
 } from 'lucide-react';
 import api from '../../services/api';
+import Loader from '../UI/Loader';
 
 export default function Dashboard() {
     const [user, setUser] = useState(null);
@@ -87,14 +87,7 @@ export default function Dashboard() {
     };
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-4" />
-                    <p className="text-[var(--color-text-secondary)]">Loading your financial overview...</p>
-                </div>
-            </div>
-        );
+        return <Loader fullScreen />;
     }
 
     return (

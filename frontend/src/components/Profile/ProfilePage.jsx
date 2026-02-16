@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
+import Loader from '../UI/Loader';
 
 const ProfilePage = () => {
     const [profile, setProfile] = useState(null);
@@ -60,7 +61,7 @@ const ProfilePage = () => {
 
     const inputCls = (hasError) => `w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-[var(--color-input-bg)] text-[var(--color-text-primary)] outline-none transition-colors ${hasError ? 'border-red-300 dark:border-red-700' : 'border-[var(--color-input-border)]'}`;
 
-    if (loading) return (<div className="flex items-center justify-center min-h-64"><div className="text-lg text-[var(--color-text-secondary)]">Loading profile...</div></div>);
+    if (loading) return <Loader />;
 
     if (error && !profile) return (
         <div className="max-w-2xl mx-auto p-6">

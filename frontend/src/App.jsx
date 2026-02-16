@@ -10,6 +10,7 @@ import SavingsPage from './components/Savings/SavingsPage';
 import ProfilePage from './components/Profile/ProfilePage';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import Layout from './components/Layout/Layout';
+import Loader from './components/UI/Loader';
 import api from './services/api';
 import './App.css';
 
@@ -50,11 +51,7 @@ function App() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading...</div>
-      </div>
-    );
+    return <Loader fullScreen />;
   }
 
   return (
