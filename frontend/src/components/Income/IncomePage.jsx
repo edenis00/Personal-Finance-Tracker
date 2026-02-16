@@ -91,10 +91,12 @@ const IncomePage = () => {
         }
     };
 
+    const inputClasses = "w-full p-3 border border-[var(--color-input-border)] rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-[var(--color-input-bg)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none transition-colors";
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-64">
-                <div className="text-lg">Loading incomes...</div>
+                <div className="text-lg text-[var(--color-text-secondary)]">Loading incomes...</div>
             </div>
         );
     }
@@ -102,35 +104,35 @@ const IncomePage = () => {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold text-gray-900">Income Management</h1>
+                <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Income Management</h1>
                 <button
                     onClick={fetchIncomes}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                    className="px-4 py-2 bg-[var(--color-bg-hover)] text-[var(--color-text-secondary)] rounded-md hover:bg-[var(--color-border)] transition-colors"
                 >
                     Refresh
                 </button>
             </div>
 
             {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-md">
                     {error}
                 </div>
             )}
 
             {/* Add Income Form */}
-            <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold mb-4">Add New Income</h2>
+            <div className="bg-[var(--color-surface)] rounded-lg shadow-sm border border-[var(--color-border)] p-6">
+                <h2 className="text-xl font-semibold mb-4 text-[var(--color-text-primary)]">Add New Income</h2>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {formError && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm">
+                        <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-3 py-2 rounded-md text-sm">
                             {formError}
                         </div>
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="amount" className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
                                 Amount ($)
                             </label>
                             <input
@@ -142,14 +144,14 @@ const IncomePage = () => {
                                 placeholder="0.00"
                                 step="0.01"
                                 min="0"
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className={inputClasses}
                                 required
                                 disabled={submitting}
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="description" className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
                                 Description
                             </label>
                             <input
@@ -159,14 +161,14 @@ const IncomePage = () => {
                                 value={formData.description}
                                 onChange={handleInputChange}
                                 placeholder="Salary, Freelance, etc."
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className={inputClasses}
                                 required
                                 disabled={submitting}
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="date" className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
                                 Date
                             </label>
                             <input
@@ -175,7 +177,7 @@ const IncomePage = () => {
                                 name="date"
                                 value={formData.date}
                                 onChange={handleInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className={inputClasses}
                                 required
                                 disabled={submitting}
                             />
@@ -193,53 +195,53 @@ const IncomePage = () => {
             </div>
 
             {/* Income List */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-xl font-semibold text-gray-900">Your Incomes</h2>
-                    <p className="text-sm text-gray-600 mt-1">Track and manage your income sources</p>
+            <div className="bg-[var(--color-surface)] rounded-lg shadow-sm border border-[var(--color-border)] overflow-hidden">
+                <div className="px-6 py-4 border-b border-[var(--color-border)]">
+                    <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Your Incomes</h2>
+                    <p className="text-sm text-[var(--color-text-secondary)] mt-1">Track and manage your income sources</p>
                 </div>
 
                 {incomes.length === 0 ? (
                     <div className="text-center py-12">
-                        <div className="text-gray-400 text-4xl mb-4">💰</div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No incomes yet</h3>
-                        <p className="text-gray-600">Add your first income source above to get started.</p>
+                        <div className="text-[var(--color-text-muted)] text-4xl mb-4">💰</div>
+                        <h3 className="text-lg font-medium text-[var(--color-text-primary)] mb-2">No incomes yet</h3>
+                        <p className="text-[var(--color-text-secondary)]">Add your first income source above to get started.</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-[var(--color-table-header)]">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
                                         Amount
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
                                         Description
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
                                         Date
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="divide-y divide-[var(--color-table-border)]">
                                 {incomes.map(income => (
-                                    <tr key={income.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <tr key={income.id} className="hover:bg-[var(--color-table-hover)] transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--color-text-primary)]">
                                             ${parseFloat(income.amount).toFixed(2)}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-primary)]">
                                             {income.source}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
                                             {new Date(income.date).toLocaleDateString()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <button
                                                 onClick={() => handleDelete(income.id)}
-                                                className="text-red-600 hover:text-red-900 px-3 py-1 rounded-md hover:bg-red-50 transition-colors"
+                                                className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 px-3 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
                                             >
                                                 Delete
                                             </button>
