@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
+import Loader from '../UI/Loader';
+import { RefreshCw, LogOut } from 'lucide-react';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const ExpensePage = () => {
     const [expenses, setExpenses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const { formatCurrency } = useCurrency();
     const [formData, setFormData] = useState({
         amount: '',
         description: '',
@@ -111,47 +115,48 @@ const ExpensePage = () => {
         'Other'
     ];
 
+    const inputClasses = "w-full p-4 border border-[var(--color-input-border)] rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-[var(--color-input-bg)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none transition-all";
+
     if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-64">
-                <div className="text-lg">Loading expenses...</div>
-            </div>
-        );
+        return <Loader />;
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8 animate-fade-in">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold text-gray-900">Expense Management</h1>
+                <div>
+                    <h1 className="text-3xl font-black text-[var(--color-text-primary)] tracking-tight">Expense Tracking</h1>
+                    <p className="text-sm font-bold text-[var(--color-text-secondary)] mt-1 uppercase tracking-widest opacity-60">Manage your spending and analyze patterns</p>
+                </div>
                 <button
                     onClick={fetchExpenses}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                    className="p-3 bg-[var(--color-bg-hover)] text-[var(--color-text-secondary)] rounded-xl hover:bg-[var(--color-border)] transition-all active:scale-95"
                 >
-                    Refresh
+                    <RefreshCw className="h-5 w-5" />
                 </button>
             </div>
 
             {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-sm font-bold text-red-700 dark:text-red-400 px-4 py-3 rounded-xl">
                     {error}
                 </div>
             )}
 
             {/* Add Expense Form */}
-            <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold mb-4">Add New Expense</h2>
+            <div className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-8 animate-fade-in stagger-1">
+                <h2 className="text-lg font-black mb-6 text-[var(--color-text-primary)] uppercase tracking-widest opacity-80">Record New Expense</h2>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     {formError && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm">
+                        <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-xs font-bold text-red-700 dark:text-red-400 px-3 py-2 rounded-lg">
                             {formError}
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div>
-                            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-                                Amount ($)
+                            <label htmlFor="amount" className="block text-xs font-black text-[var(--color-text-secondary)] uppercase tracking-widest mb-2 opacity-60">
+                                Amount
                             </label>
                             <input
                                 type="number"
@@ -162,14 +167,14 @@ const ExpensePage = () => {
                                 placeholder="0.00"
                                 step="0.01"
                                 min="0"
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className={inputClasses}
                                 required
                                 disabled={submitting}
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="description" className="block text-xs font-black text-[var(--color-text-secondary)] uppercase tracking-widest mb-2 opacity-60">
                                 Description
                             </label>
                             <input
@@ -178,15 +183,15 @@ const ExpensePage = () => {
                                 name="description"
                                 value={formData.description}
                                 onChange={handleInputChange}
-                                placeholder="Coffee, Gas, etc."
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="E.g. Coffee"
+                                className={inputClasses}
                                 required
                                 disabled={submitting}
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="category" className="block text-xs font-black text-[var(--color-text-secondary)] uppercase tracking-widest mb-2 opacity-60">
                                 Category
                             </label>
                             <select
@@ -194,7 +199,7 @@ const ExpensePage = () => {
                                 name="category"
                                 value={formData.category}
                                 onChange={handleInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className={inputClasses}
                                 required
                                 disabled={submitting}
                             >
@@ -206,7 +211,7 @@ const ExpensePage = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="date" className="block text-xs font-black text-[var(--color-text-secondary)] uppercase tracking-widest mb-2 opacity-60">
                                 Date
                             </label>
                             <input
@@ -215,7 +220,7 @@ const ExpensePage = () => {
                                 name="date"
                                 value={formData.date}
                                 onChange={handleInputChange}
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className={inputClasses}
                                 required
                                 disabled={submitting}
                             />
@@ -225,71 +230,62 @@ const ExpensePage = () => {
                     <button
                         type="submit"
                         disabled={submitting}
-                        className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="w-full md:w-auto px-8 py-4 bg-indigo-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
                     >
-                        {submitting ? 'Adding Expense...' : 'Add Expense'}
+                        {submitting ? 'Processing...' : 'Add Expense Entry'}
                     </button>
                 </form>
             </div>
 
             {/* Expense List */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-xl font-semibold text-gray-900">Your Expenses</h2>
-                    <p className="text-sm text-gray-600 mt-1">Track and manage your spending</p>
+            <div className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden animate-fade-in stagger-2">
+                <div className="px-8 py-6 border-b border-[var(--color-border)]">
+                    <h2 className="text-lg font-black text-[var(--color-text-primary)] uppercase tracking-widest opacity-80">Outflow History</h2>
                 </div>
 
                 {expenses.length === 0 ? (
-                    <div className="text-center py-12">
-                        <div className="text-gray-400 text-4xl mb-4">💸</div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No expenses yet</h3>
-                        <p className="text-gray-600">Add your first expense above to start tracking your spending.</p>
+                    <div className="text-center py-16">
+                        <div className="inline-flex p-6 bg-[var(--color-bg-hover)] rounded-3xl mb-4">
+                            <TrendingDown className="h-10 w-10 text-[var(--color-text-muted)] opacity-30" />
+                        </div>
+                        <h3 className="text-sm font-black text-[var(--color-text-primary)] uppercase tracking-widest mb-1">No expenses logged</h3>
+                        <p className="text-xs font-bold text-[var(--color-text-secondary)] opacity-60">Track your spending to see analysis here.</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Amount
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Description
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Category
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Date
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions
-                                    </th>
+                            <thead>
+                                <tr className="bg-[var(--color-table-header)] border-b border-[var(--color-border)]">
+                                    <th className="px-8 py-4 text-left text-[10px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em]">Amount</th>
+                                    <th className="px-8 py-4 text-left text-[10px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em]">Description</th>
+                                    <th className="px-8 py-4 text-left text-[10px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em]">Category</th>
+                                    <th className="px-8 py-4 text-left text-[10px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em]">Date</th>
+                                    <th className="px-8 py-4 text-right text-[10px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em]">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {expenses.map(expense => (
-                                    <tr key={expense.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            ${parseFloat(expense.amount).toFixed(2)}
+                            <tbody className="divide-y divide-[var(--color-table-border)]">
+                                {expenses.map((expense, index) => (
+                                    <tr key={expense.id} className={`hover:bg-[var(--color-table-hover)] transition-colors animate-fade-in stagger-${index % 5 + 1}`}>
+                                        <td className="px-8 py-5 whitespace-nowrap text-sm font-black text-rose-600">
+                                            {formatCurrency(expense.amount)}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <td className="px-8 py-5 whitespace-nowrap text-sm font-bold text-[var(--color-text-primary)]">
                                             {expense.description}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <span className="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
+                                        <td className="px-8 py-5 whitespace-nowrap">
+                                            <span className="inline-flex px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-[var(--color-bg-hover)] text-[var(--color-text-secondary)] rounded-lg">
                                                 {expense.category}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {new Date(expense.date).toLocaleDateString()}
+                                        <td className="px-8 py-5 whitespace-nowrap text-xs font-bold text-[var(--color-text-secondary)] opacity-70">
+                                            {new Date(expense.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <td className="px-8 py-5 whitespace-nowrap text-right">
                                             <button
                                                 onClick={() => handleDelete(expense.id)}
-                                                className="text-red-600 hover:text-red-900 px-3 py-1 rounded-md hover:bg-red-50 transition-colors"
+                                                className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-all active:scale-90"
                                             >
-                                                Delete
+                                                <LogOut className="h-4 w-4 rotate-180" />
                                             </button>
                                         </td>
                                     </tr>
