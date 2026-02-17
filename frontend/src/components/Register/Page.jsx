@@ -62,7 +62,7 @@ export default function RegisterPage() {
             {/* Theme Toggle */}
             <button
                 onClick={toggleTheme}
-                className="absolute top-4 right-4 p-3 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-blue-500 hover:border-blue-500 transition-all shadow-sm"
+                className="absolute top-4 right-4 p-3 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-blue-500 hover:border-blue-500 transition-all"
                 aria-label="Toggle theme"
             >
                 {theme === 'dark' ? (

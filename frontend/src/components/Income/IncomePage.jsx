@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import Loader from '../UI/Loader';
+import { RefreshCw, LogOut } from 'lucide-react';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const IncomePage = () => {
     const [incomes, setIncomes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const { formatCurrency } = useCurrency();
     const [formData, setFormData] = useState({
         amount: '',
         source: '',
@@ -92,45 +95,51 @@ const IncomePage = () => {
         }
     };
 
-    const inputClasses = "w-full p-3 border border-[var(--color-input-border)] rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-[var(--color-input-bg)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none transition-colors";
+    // Removed local formatCurrency as it's now provided by CurrencyContext
+
+    const inputClasses = "w-full p-4 border border-[var(--color-input-border)] rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-[var(--color-input-bg)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none transition-all";
 
     if (loading) {
         return <Loader />;
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8 animate-fade-in">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Income Management</h1>
+                <div>
+                    <h1 className="text-3xl font-black text-[var(--color-text-primary)] tracking-tight">Income Management</h1>
+                    <p className="text-sm font-bold text-[var(--color-text-secondary)] mt-1 uppercase tracking-widest opacity-60">Monitor and categorize your revenue</p>
+                </div>
                 <button
                     onClick={fetchIncomes}
-                    className="px-4 py-2 bg-[var(--color-bg-hover)] text-[var(--color-text-secondary)] rounded-md hover:bg-[var(--color-border)] transition-colors"
+                    className="p-3 bg-[var(--color-bg-hover)] text-[var(--color-text-secondary)] rounded-xl hover:bg-[var(--color-border)] transition-all active:scale-95"
+                    title="Refresh Data"
                 >
-                    Refresh
+                    <RefreshCw className="h-5 w-5" />
                 </button>
             </div>
 
             {error && (
-                <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-md">
+                <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-sm font-bold text-red-700 dark:text-red-400 px-4 py-3 rounded-xl animate-fade-in">
                     {error}
                 </div>
             )}
 
             {/* Add Income Form */}
-            <div className="bg-[var(--color-surface)] rounded-lg shadow-sm border border-[var(--color-border)] p-6">
-                <h2 className="text-xl font-semibold mb-4 text-[var(--color-text-primary)]">Add New Income</h2>
+            <div className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] p-8 animate-fade-in stagger-1">
+                <h2 className="text-lg font-black mb-6 text-[var(--color-text-primary)] uppercase tracking-widest opacity-80">Record New Income</h2>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     {formError && (
-                        <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-3 py-2 rounded-md text-sm">
+                        <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-xs font-bold text-red-700 dark:text-red-400 px-3 py-2 rounded-lg">
                             {formError}
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <label htmlFor="amount" className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
-                                Amount ($)
+                            <label htmlFor="amount" className="block text-xs font-black text-[var(--color-text-secondary)] uppercase tracking-widest mb-2 opacity-60">
+                                Amount
                             </label>
                             <input
                                 type="number"
@@ -148,7 +157,7 @@ const IncomePage = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                            <label htmlFor="description" className="block text-xs font-black text-[var(--color-text-secondary)] uppercase tracking-widest mb-2 opacity-60">
                                 Description
                             </label>
                             <input
@@ -157,7 +166,7 @@ const IncomePage = () => {
                                 name="description"
                                 value={formData.description}
                                 onChange={handleInputChange}
-                                placeholder="Salary, Freelance, etc."
+                                placeholder="E.g. Monthly Salary"
                                 className={inputClasses}
                                 required
                                 disabled={submitting}
@@ -165,7 +174,7 @@ const IncomePage = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="date" className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                            <label htmlFor="date" className="block text-xs font-black text-[var(--color-text-secondary)] uppercase tracking-widest mb-2 opacity-60">
                                 Date
                             </label>
                             <input
@@ -184,63 +193,57 @@ const IncomePage = () => {
                     <button
                         type="submit"
                         disabled={submitting}
-                        className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="w-full md:w-auto px-8 py-4 bg-indigo-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
                     >
-                        {submitting ? 'Adding Income...' : 'Add Income'}
+                        {submitting ? 'Processing...' : 'Add Income Entry'}
                     </button>
                 </form>
             </div>
 
             {/* Income List */}
-            <div className="bg-[var(--color-surface)] rounded-lg shadow-sm border border-[var(--color-border)] overflow-hidden">
-                <div className="px-6 py-4 border-b border-[var(--color-border)]">
-                    <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Your Incomes</h2>
-                    <p className="text-sm text-[var(--color-text-secondary)] mt-1">Track and manage your income sources</p>
+            <div className="bg-[var(--color-surface)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden animate-fade-in stagger-2">
+                <div className="px-8 py-6 border-b border-[var(--color-border)]">
+                    <h2 className="text-lg font-black text-[var(--color-text-primary)] uppercase tracking-widest opacity-80">Inflow History</h2>
                 </div>
 
                 {incomes.length === 0 ? (
-                    <div className="text-center py-12">
-                        <div className="text-[var(--color-text-muted)] text-4xl mb-4">💰</div>
-                        <h3 className="text-lg font-medium text-[var(--color-text-primary)] mb-2">No incomes yet</h3>
-                        <p className="text-[var(--color-text-secondary)]">Add your first income source above to get started.</p>
+                    <div className="text-center py-16">
+                        <div className="inline-flex p-6 bg-[var(--color-bg-hover)] rounded-3xl mb-4">
+                            <TrendingUp className="h-10 w-10 text-[var(--color-text-muted)] opacity-30" />
+                        </div>
+                        <h3 className="text-sm font-black text-[var(--color-text-primary)] uppercase tracking-widest mb-1">No incomes logged</h3>
+                        <p className="text-xs font-bold text-[var(--color-text-secondary)] opacity-60">Start by adding your first income entry above.</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-[var(--color-table-header)]">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-                                        Amount
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-                                        Description
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-                                        Date
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-                                        Actions
-                                    </th>
+                            <thead>
+                                <tr className="bg-[var(--color-table-header)] border-b border-[var(--color-border)]">
+                                    <th className="px-8 py-4 text-left text-[10px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em]">Amount</th>
+                                    <th className="px-8 py-4 text-left text-[10px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em]">Source</th>
+                                    <th className="px-8 py-4 text-left text-[10px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em]">Date</th>
+                                    <th className="px-8 py-4 text-right text-[10px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em]">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[var(--color-table-border)]">
-                                {incomes.map(income => (
-                                    <tr key={income.id} className="hover:bg-[var(--color-table-hover)] transition-colors">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--color-text-primary)]">
-                                            ${parseFloat(income.amount).toFixed(2)}
+                                {incomes.map((income, index) => (
+                                    <tr key={income.id} className={`hover:bg-[var(--color-table-hover)] transition-colors animate-fade-in stagger-${index % 5 + 1}`}>
+                                        <td className="px-8 py-5 whitespace-nowrap text-sm font-black text-emerald-600">
+                                            {formatCurrency(income.amount)}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-primary)]">
+                                        <td className="px-8 py-5 whitespace-nowrap text-sm font-bold text-[var(--color-text-primary)]">
                                             {income.source}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
-                                            {new Date(income.date).toLocaleDateString()}
+                                        <td className="px-8 py-5 whitespace-nowrap text-xs font-bold text-[var(--color-text-secondary)] opacity-70">
+                                            {new Date(income.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <td className="px-8 py-5 whitespace-nowrap text-right">
                                             <button
                                                 onClick={() => handleDelete(income.id)}
-                                                className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 px-3 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
+                                                className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-all active:scale-90"
+                                                title="Delete entry"
                                             >
-                                                Delete
+                                                <LogOut className="h-4 w-4 rotate-180" />
                                             </button>
                                         </td>
                                     </tr>
@@ -253,5 +256,5 @@ const IncomePage = () => {
         </div>
     );
 
-}
+};
 export default IncomePage;
